@@ -1,0 +1,109 @@
+name: Process Game Submissions
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'submissions/*.json'
+
+jobs:
+  process-submissions:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install slugify
+
+    - name: Process submissions
+      run: |
+        # Find all JSON files in submissions directory (excluding README.md)
+        SUBMISSION_FILES=$(find submissions -name "*.json" -type f)
+
+        if [ -n "$SUBMISSION_FILES" ]; then
+          echo "Found submission files: $SUBMISSION_FILES"
+
+          # Process each submission file
+          for file in $SUBMISSION_FILES; do
+            echo "Processing $file..."
+
+            # Read the submission JSON
+            SUBMISSION=$(cat "$file")
+
+            # Extract fields
+            TITLE=$(echo "$SUBMISSION" | jq -r '.title')
+            AUTHOR=$(echo "$SUBMISSION" | jq -r '.author')
+            THEME=$(echo "$SUBMISSION" | jq -r '.theme')
+            GENRE=$(echo "$SUBMISSION" | jq -r '.genre')
+            TWIST=$(echo "$SUBMISSION" | jq -r '.twist')
+            DIFFICULTY=$(echo "$SUBMISSION" | jq -r '.difficulty')
+            DESCRIPTION=$(echo "$SUBMISSION" | jq -r '.description')
+            SUBMITTED=$(echo "$SUBMISSION" | jq -r '.submitted')
+            HTML=$(echo "$SUBMISSION" | jq -r '.html')
+
+            # Create slugified filename
+            FILENAME=$(echo "$TITLE" | node -e "const slugify = require('slugify'); console.log(slugify(process.argv[1], { lower: true, strict: true }))" "$TITLE")
+            HTML_FILE="games/${FILENAME}.html"
+
+            # Write HTML to games directory
+            echo "$HTML" > "$HTML_FILE"
+
+            # Create game entry for games.json (without html field)
+            GAME_ENTRY=$(jq -n \
+              --arg title "$TITLE" \
+              --arg author "$AUTHOR" \
+              --arg theme "$THEME" \
+              --arg genre "$GENRE" \
+              --arg twist "$TWIST" \
+              --arg difficulty "$DIFFICULTY" \
+              --arg description "$DESCRIPTION" \
+              --arg submitted "$SUBMITTED" \
+              --arg url "https://favstats.github.io/prompt_roulette/games/${FILENAME}.html" \
+              '{
+                title: $title,
+                author: $author,
+                theme: $theme,
+                genre: $genre,
+                twist: $twist,
+                difficulty: $difficulty,
+                url: $url,
+                description: $description,
+                submitted: $submitted
+              }')
+
+            # Add to games.json
+            jq --argjson game "$GAME_ENTRY" '.games += [$game]' games.json > games.json.tmp && mv games.json.tmp games.json
+
+            # Remove the processed submission file
+            rm "$file"
+
+            echo "Processed game: $TITLE -> $HTML_FILE"
+          done
+
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add changes
+          git add games/ games.json submissions/
+
+          # Commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Add approved game(s) to library [automated]"
+            git push
+          fi
+        else
+          echo "No submission files found"
+        fi
