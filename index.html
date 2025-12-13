@@ -450,7 +450,7 @@
       <div class="modalBd">
         <div class="space-y-3">
           <div class="text-sm text-white/80">
-            Fill out the form below. We'll generate a GitHub issue link for you to submit your game. The JSON will be copied to your clipboard.
+            Fill out the form below and paste your game's HTML code. We'll generate a GitHub issue link for you to submit your game.
           </div>
           
           <div>
@@ -509,11 +509,10 @@
           </div>
 
           <div>
-            <label class="text-xs text-white/70 uppercase tracking-widest">Or Paste JSON Directly</label>
-            <textarea id="submitGameJSON" placeholder='Paste JSON here (optional - will override form fields)' rows="4"
-              class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white font-mono border border-white/10 focus:border-pink-500 resize-none"
-              oninput="parseGameJSON()"></textarea>
-            <div class="text-[10px] text-white/50 mt-1">If you paste valid JSON here, it will override the form fields above.</div>
+            <label class="text-xs text-white/70 uppercase tracking-widest">Game HTML Code *</label>
+            <textarea id="submitGameHTML" placeholder='Paste your complete game HTML code here...' rows="12"
+              class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white font-mono border border-white/10 focus:border-pink-500 resize-none"></textarea>
+            <div class="text-[10px] text-white/50 mt-1">Paste the complete HTML code of your game (the entire &lt;!DOCTYPE html&gt;... file).</div>
           </div>
 
           <div class="flex gap-2 pt-2">
@@ -2233,7 +2232,8 @@ Recommended libraries (use CDN links):
           if (typeof obj.activeIndex === "number") activeIndex = obj.activeIndex;
           if (typeof obj.template === "string") document.getElementById("promptTemplate").value = obj.template;
           if (typeof obj.soundOn === "boolean") soundOn = obj.soundOn;
-          document.getElementById('soundStatus').innerText = soundOn ? "ON" : "OFF";
+          const soundStatusEl = document.getElementById('soundStatus');
+          if (soundStatusEl) soundStatusEl.innerText = soundOn ? "ON" : "OFF";
           savePlayers();
           updatePromptDisplay();
           toastFlash("Imported!");
@@ -2682,13 +2682,13 @@ Recommended libraries (use CDN links):
       const genreEl = document.getElementById('submitGameGenre');
       const twistEl = document.getElementById('submitGameTwist');
       const difficultyEl = document.getElementById('submitGameDifficulty');
-      const jsonEl = document.getElementById('submitGameJSON');
+      const htmlEl = document.getElementById('submitGameHTML');
       
       if (themeEl) themeEl.value = currentTheme || '';
       if (genreEl) genreEl.value = currentGenre || '';
       if (twistEl) twistEl.value = currentTwist || '';
       if (difficultyEl) difficultyEl.value = currentDifficulty || 'normal';
-      if (jsonEl) jsonEl.value = ''; // Clear JSON field
+      if (htmlEl) htmlEl.value = ''; // Clear HTML field
       
       const modal = document.getElementById('submitGameBack');
       if (modal) {
@@ -2697,28 +2697,6 @@ Recommended libraries (use CDN links):
       }
     }
     
-    function parseGameJSON() {
-      const jsonEl = document.getElementById('submitGameJSON');
-      if (!jsonEl || !jsonEl.value.trim()) return;
-      
-      try {
-        const parsed = JSON.parse(jsonEl.value.trim());
-        
-        // Fill form fields from parsed JSON
-        if (parsed.title) document.getElementById('submitGameTitle').value = parsed.title;
-        if (parsed.author) document.getElementById('submitGameAuthor').value = parsed.author;
-        if (parsed.url) document.getElementById('submitGameURL').value = parsed.url;
-        if (parsed.theme) document.getElementById('submitGameTheme').value = parsed.theme;
-        if (parsed.genre) document.getElementById('submitGameGenre').value = parsed.genre;
-        if (parsed.twist) document.getElementById('submitGameTwist').value = parsed.twist;
-        if (parsed.difficulty) document.getElementById('submitGameDifficulty').value = parsed.difficulty;
-        if (parsed.description) document.getElementById('submitGameDescription').value = parsed.description;
-        
-        toastFlash("JSON parsed! Form fields updated.");
-      } catch (e) {
-        // Invalid JSON, don't do anything (user might still be typing)
-      }
-    }
 
     function closeSubmitGameModal() {
       const modal = document.getElementById('submitGameBack');
@@ -2734,82 +2712,82 @@ Recommended libraries (use CDN links):
       document.getElementById('submitGameTwist').value = '';
       document.getElementById('submitGameDifficulty').value = 'normal';
       document.getElementById('submitGameDescription').value = '';
-      const jsonEl = document.getElementById('submitGameJSON');
-      if (jsonEl) jsonEl.value = '';
+      const htmlEl = document.getElementById('submitGameHTML');
+      if (htmlEl) htmlEl.value = '';
     }
 
     function generateGamePR() {
-      // Check if JSON field has content - if so, use that instead
-      const jsonEl = document.getElementById('submitGameJSON');
-      let gameData = null;
+      console.log('generateGamePR called');
       
-      if (jsonEl && jsonEl.value.trim()) {
-        try {
-          gameData = JSON.parse(jsonEl.value.trim());
-          // Validate required fields
-          if (!gameData.title || !gameData.author || !gameData.url) {
-            toastFlash("JSON missing required fields: title, author, url");
-            playSound('error');
-            return;
-          }
-        } catch (e) {
-          toastFlash("Invalid JSON! Please fix the JSON or use the form fields.");
-          playSound('error');
-          return;
-        }
+      // Get HTML code
+      const htmlEl = document.getElementById('submitGameHTML');
+      const gameHTML = htmlEl ? htmlEl.value.trim() : '';
+      
+      console.log('HTML length:', gameHTML.length);
+      console.log('HTML preview:', gameHTML.substring(0, 100));
+      
+      if (!gameHTML || gameHTML.length < 50) {
+        toastFlash("Please paste your complete game HTML code! (At least 50 characters)");
+        playSound('error');
+        return;
       }
       
-      // If no JSON, use form fields
-      if (!gameData) {
-        const title = document.getElementById('submitGameTitle').value.trim();
-        const author = document.getElementById('submitGameAuthor').value.trim();
-        const url = document.getElementById('submitGameURL').value.trim();
-        const theme = document.getElementById('submitGameTheme').value.trim();
-        const genre = document.getElementById('submitGameGenre').value.trim();
-        const twist = document.getElementById('submitGameTwist').value.trim();
-        const difficulty = document.getElementById('submitGameDifficulty').value;
-        const description = document.getElementById('submitGameDescription').value.trim();
+      // Get form fields
+      const title = document.getElementById('submitGameTitle').value.trim();
+      const author = document.getElementById('submitGameAuthor').value.trim();
+      const url = document.getElementById('submitGameURL').value.trim();
+      const theme = document.getElementById('submitGameTheme').value.trim();
+      const genre = document.getElementById('submitGameGenre').value.trim();
+      const twist = document.getElementById('submitGameTwist').value.trim();
+      const difficulty = document.getElementById('submitGameDifficulty').value;
+      const description = document.getElementById('submitGameDescription').value.trim();
 
-        if (!title || !author || !url) {
-          toastFlash("Please fill in required fields (Title, Author, URL)");
-          playSound('error');
-          return;
-        }
-
-        // Validate URL
-        try {
-          new URL(url);
-        } catch (e) {
-          toastFlash("Please enter a valid URL");
-          playSound('error');
-          return;
-        }
-
-        // Create game object
-        gameData = {
-          title,
-          author,
-          url,
-          theme: theme || currentTheme || '',
-          genre: genre || currentGenre || '',
-          twist: twist || currentTwist || '',
-          difficulty,
-          description: description || '',
-          submitted: new Date().toISOString().split('T')[0]
-        };
-      }
-      
-      // Ensure submitted date is set
-      if (!gameData.submitted) {
-        gameData.submitted = new Date().toISOString().split('T')[0];
+      if (!title || !author || !url) {
+        toastFlash("Please fill in required fields (Title, Author, URL)");
+        playSound('error');
+        return;
       }
 
-      // Extract values for display
-      const { title, author, url, theme, genre, twist, difficulty, description } = gameData;
+      // Validate URL
+      try {
+        new URL(url);
+      } catch (e) {
+        toastFlash("Please enter a valid URL");
+        playSound('error');
+        return;
+      }
 
-      // Generate JSON snippet for PR
+      // Create game object for JSON snippet
+      const gameData = {
+        title,
+        author,
+        url,
+        theme: theme || currentTheme || '',
+        genre: genre || currentGenre || '',
+        twist: twist || currentTwist || '',
+        difficulty,
+        description: description || '',
+        submitted: new Date().toISOString().split('T')[0]
+      };
+
+      // Generate JSON snippet for games.json
       const jsonSnippet = JSON.stringify(gameData, null, 2);
-      const prBody = encodeURIComponent(`## Submit Game: ${title}
+      
+      // Generate filename suggestion
+      const filename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.html`;
+      const filepath = `games/${filename}`;
+      
+      // GitHub's URL-based file creation has length limits (~2000 chars)
+      // For larger files, we'll use a different approach: create issue with HTML in body
+      // and provide a link to create the file manually
+      
+      const MAX_URL_LENGTH = 2000; // Conservative limit
+      const encodedHTML = encodeURIComponent(gameHTML);
+      const baseUrl = `https://github.com/${GITHUB_REPO.user}/${GITHUB_REPO.repo}/new/main?filename=${encodeURIComponent(filepath)}`;
+      const fullUrlWithValue = `${baseUrl}&value=${encodedHTML}`;
+      
+      // Create PR body template with instructions
+      const prBody = `## Submit Game: ${title}
 
 **Author:** ${author}
 **URL:** ${url}
@@ -2821,58 +2799,123 @@ ${description ? `**Description:** ${description}\n\n` : ''}
 **Genre:** ${genre || 'N/A'}
 **Twist:** ${twist || 'N/A'}
 
-### JSON to add to games.json:
+### 📝 Next Steps
+
+1. **Create HTML file:** \`${filepath}\`
+2. **Update games.json:** Add this entry to the \`games\` array:
+
 \`\`\`json
 ${jsonSnippet}
 \`\`\`
 
-Please add this game to the \`games.json\` file in the \`games\` array.`);
+**Instructions:**
+- Create the HTML file in \`games/\` folder
+- Add the JSON entry above to \`games.json\`
+- Commit both changes and create PR`;
 
-      // Create a proper GitHub issue URL for game submission
-      const issueTitle = `Submit Game: ${title}`;
-      const prUrl = `https://github.com/${GITHUB_REPO.user}/${GITHUB_REPO.repo}/issues/new?title=${encodeURIComponent(issueTitle)}&body=${prBody}`;
+      console.log('URL length:', fullUrlWithValue.length);
+      console.log('GITHUB_REPO:', GITHUB_REPO);
       
-      // Copy JSON snippet to clipboard for easy addition to games.json
-      const jsonToCopy = jsonSnippet;
+      toastFlash("Preparing submission...");
       
-      // Copy to clipboard first
+      // Copy HTML to clipboard first
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(jsonToCopy).then(() => {
-          toastFlash("JSON copied to clipboard!");
-        }).catch(() => {
-          console.warn('Clipboard copy failed');
+        navigator.clipboard.writeText(gameHTML).then(() => {
+          console.log('HTML copied to clipboard');
+          
+          // Also copy JSON
+          navigator.clipboard.writeText(jsonSnippet).then(() => {
+            console.log('JSON copied to clipboard');
+          });
+          
+          // Try to open GitHub file creation
+          // If URL is too long, we'll use a simpler approach
+          let fileWin = null;
+          
+          if (fullUrlWithValue.length < MAX_URL_LENGTH) {
+            // URL is short enough, try direct file creation
+            try {
+              fileWin = window.open(fullUrlWithValue, '_blank', 'noopener,noreferrer');
+              console.log('Opened file creation URL');
+            } catch (e) {
+              console.error('Error opening URL:', e);
+            }
+          }
+          
+          if (!fileWin || fileWin.closed) {
+            // URL too long or popup blocked - use alternative approach
+            console.log('Using alternative approach - opening new file page without content');
+            
+            // Open the "new file" page without pre-filled content
+            // HTML is already in clipboard, user can paste it
+            const simpleFileUrl = baseUrl;
+            fileWin = window.open(simpleFileUrl, '_blank', 'noopener,noreferrer');
+            
+            if (fileWin) {
+              setTimeout(() => {
+                toastFlash("HTML copied! Paste it in the form that opened.");
+                alert(`✅ HTML code copied to clipboard!\n✅ File creation page opened\n\nNext steps:\n1. Paste HTML in the form (already copied)\n2. Commit the file\n3. Edit games.json (JSON also copied to clipboard)\n4. Create PR`);
+                
+                console.log('=== SUBMISSION INSTRUCTIONS ===');
+                console.log('1. HTML is in clipboard - paste it in the form');
+                console.log('2. Commit the file');
+                console.log('3. Edit games.json and paste JSON entry:');
+                console.log(jsonSnippet);
+                console.log('4. Create PR with this description:');
+                console.log(prBody);
+              }, 1000);
+            } else {
+              // Popup blocked completely
+              fallbackToInstructions(title, author, url, theme, genre, twist, difficulty, description, gameHTML, jsonSnippet, filename, filepath, baseUrl, prBody);
+            }
+          } else {
+            // Successfully opened with pre-filled content
+            setTimeout(() => {
+              toastFlash("File form opened! HTML pre-filled.");
+              console.log('=== SUBMISSION INSTRUCTIONS ===');
+              console.log('1. HTML file is pre-filled - commit it');
+              console.log('2. Edit games.json and add JSON entry:');
+              console.log(jsonSnippet);
+              console.log('3. Create PR with description:');
+              console.log(prBody);
+            }, 1000);
+          }
+        }).catch(err => {
+          console.error('Clipboard copy failed:', err);
+          toastFlash("Error copying to clipboard. Check console.");
+          fallbackToInstructions(title, author, url, theme, genre, twist, difficulty, description, gameHTML, jsonSnippet, filename, filepath, baseUrl, prBody);
         });
-      }
-      
-      // Always try to open the URL - use window.open directly (called from user click)
-      toastFlash("Opening GitHub issue...");
-      
-      // Try window.open (most reliable when called from user interaction)
-      try {
-        const win = window.open(prUrl, '_blank', 'noopener,noreferrer');
-        
-        if (!win || win.closed || typeof win.closed === 'undefined') {
-          // Popup was blocked, show instructions
-          toastFlash("Popup blocked! Check console for JSON.");
-          console.log('Game JSON to add:', jsonToCopy);
-          console.log('GitHub issue URL:', prUrl);
-          setTimeout(() => {
-            const instructions = `Popup was blocked. Please:\n\n1. Copy this JSON:\n\n${jsonToCopy}\n\n2. Go to:\n${prUrl}\n\n3. Paste the JSON in the issue body.`;
-            alert(instructions);
-          }, 500);
-        } else {
-          // Successfully opened
-          console.log('GitHub issue opened:', prUrl);
-          console.log('JSON copied to clipboard:', jsonToCopy);
-        }
-      } catch (e) {
-        console.error('Failed to open URL', e);
-        console.log('Game JSON to add:', jsonToCopy);
-        console.log('GitHub issue URL:', prUrl);
-        alert(`Please manually go to:\n${prUrl}\n\nAnd copy this JSON:\n\n${jsonToCopy}`);
+      } else {
+        // No clipboard API
+        console.log('No clipboard API available');
+        fallbackToInstructions(title, author, url, theme, genre, twist, difficulty, description, gameHTML, jsonSnippet, filename, filepath, baseUrl, prBody);
       }
       
       closeSubmitGameModal();
+    }
+    
+    function fallbackToInstructions(title, author, url, theme, genre, twist, difficulty, description, gameHTML, jsonSnippet, filename, filepath, fileUrl, prBody) {
+      // Fallback: Show all instructions
+      toastFlash("Popup blocked! Check console for instructions.");
+      
+      console.log('=== GAME SUBMISSION ===');
+      console.log('1. Go to:', fileUrl);
+      console.log('2. HTML is in clipboard - paste it in the form');
+      console.log('3. Edit games.json and add this entry:');
+      console.log(jsonSnippet);
+      console.log('4. Use this PR description:');
+      console.log(prBody);
+      
+      // Copy HTML and JSON to clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(gameHTML).then(() => {
+          navigator.clipboard.writeText(jsonSnippet);
+        });
+      }
+      
+      setTimeout(() => {
+        alert(`Popup blocked. Please:\n\n1. Go to: ${fileUrl}\n2. HTML is in clipboard - paste it\n3. Edit games.json (JSON also in clipboard)\n4. Create PR with description shown in console`);
+      }, 500);
     }
 
     // Expose functions globally
@@ -2880,7 +2923,6 @@ Please add this game to the \`games.json\` file in the \`games\` array.`);
     window.showSubmitGameModal = showSubmitGameModal;
     window.closeSubmitGameModal = closeSubmitGameModal;
     window.generateGamePR = generateGamePR;
-    window.parseGameJSON = parseGameJSON;
 
     // ==========================================================
     // Boot + Hotkeys
@@ -2889,7 +2931,8 @@ Please add this game to the \`games.json\` file in the \`games\` array.`);
       // Load sound
       const s = localStorage.getItem("pra_soundOn");
       if (s === "0") soundOn = false;
-      document.getElementById('soundStatus').innerText = soundOn ? "ON" : "OFF";
+      const soundStatusEl = document.getElementById('soundStatus');
+      if (soundStatusEl) soundStatusEl.innerText = soundOn ? "ON" : "OFF";
 
       // Load data from JSON files (async, but don't wait - uses fallback initially)
       loadDataFromJSON().then(() => {
