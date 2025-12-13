@@ -1,0 +1,1581 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HELLCORD MOD: Flap & Ban</title>
+  <style>
+    :root{
+      --bg0:#0a0611;
+      --bg1:#120a1f;
+      --bg2:#1c0b2f;
+      --panel:rgba(18,10,31,.72);
+      --panel2:rgba(12,6,20,.86);
+      --ink:#f6f2ff;
+      --muted:#c9b8ff;
+      --hot:#ff3c78;
+      --hot2:#ffb000;
+      --good:#62ffb1;
+      --bad:#ff5a5a;
+      --line:rgba(255,255,255,.12);
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius:16px;
+      --radius2:22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: radial-gradient(1200px 700px at 20% 10%, #27134a 0%, transparent 60%),
+                  radial-gradient(900px 600px at 85% 25%, #3b0f2b 0%, transparent 55%),
+                  linear-gradient(180deg, var(--bg0), var(--bg2));
+      color:var(--ink);
+      font-family:var(--sans);
+      overflow:hidden;
+    }
+
+    /* Layout */
+    .app{
+      height:100%;
+      display:grid;
+      grid-template-rows:auto 1fr;
+      gap:10px;
+      padding:12px;
+    }
+
+    .topbar{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:var(--radius2);
+      background:linear-gradient(180deg, rgba(25,12,44,.82), rgba(10,6,17,.65));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width: 230px;
+    }
+    .sigil{
+      width:36px; height:36px;
+      border-radius:14px;
+      background: radial-gradient(circle at 30% 35%, rgba(255,255,255,.22), transparent 45%),
+                  conic-gradient(from 210deg, #ff3c78, #ffb000, #8a5bff, #ff3c78);
+      position:relative;
+      box-shadow: 0 0 0 2px rgba(255,255,255,.10) inset,
+                  0 12px 26px rgba(0,0,0,.45),
+                  0 0 18px rgba(255,60,120,.25);
+    }
+    .sigil:before{
+      content:"";
+      position:absolute; inset:9px;
+      border-radius:12px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.20), transparent 55%),
+                  linear-gradient(180deg, rgba(10,6,17,.2), rgba(10,6,17,.82));
+      box-shadow: 0 0 0 1px rgba(255,255,255,.10) inset;
+      transform: rotate(8deg);
+    }
+    .title{
+      display:flex; flex-direction:column; line-height:1.05;
+    }
+    .title b{font-size:14px; letter-spacing:.6px}
+    .title span{font-size:12px; color:var(--muted); opacity:.95}
+
+    .hud{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+      flex:1;
+      flex-wrap:wrap;
+    }
+    .pill{
+      display:flex;
+      gap:8px;
+      align-items:baseline;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(10,6,20,.55);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+      font-variant-numeric: tabular-nums;
+    }
+    .pill small{color:var(--muted); font-size:11px; letter-spacing:.4px}
+    .pill strong{font-size:14px}
+
+    .controls{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      min-width: 310px;
+      justify-content:flex-end;
+    }
+
+    button, .btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      color:var(--ink);
+      border-radius: 12px;
+      padding: 9px 11px;
+      font-weight: 650;
+      letter-spacing:.2px;
+      cursor:pointer;
+      transition: transform .12s ease, filter .12s ease, background .18s ease, border-color .18s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.06) inset;
+      user-select:none;
+    }
+    button:hover{transform: translateY(-1px); filter:brightness(1.06)}
+    button:active{transform: translateY(0px) scale(.99); filter:brightness(.98)}
+    button[disabled]{opacity:.55; cursor:not-allowed}
+    button.primary{
+      border-color: rgba(255,60,120,.45);
+      background: linear-gradient(180deg, rgba(255,60,120,.35), rgba(255,60,120,.12));
+      box-shadow: 0 14px 36px rgba(255,60,120,.18), 0 0 0 1px rgba(255,255,255,.06) inset;
+    }
+    button.good{
+      border-color: rgba(98,255,177,.45);
+      background: linear-gradient(180deg, rgba(98,255,177,.30), rgba(98,255,177,.10));
+    }
+    button.ghost{
+      background: rgba(10,6,20,.35);
+    }
+
+    /* Focus states (keyboard accessibility) */
+    button:focus-visible, a:focus-visible, .focusable:focus-visible{
+      outline: 3px solid rgba(138,91,255,.65);
+      outline-offset: 3px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset, 0 0 0 6px rgba(138,91,255,.18);
+    }
+
+    .stage{
+      position:relative;
+      border-radius:var(--radius2);
+      border:1px solid var(--line);
+      background: radial-gradient(1000px 600px at 50% 20%, rgba(138,91,255,.18), transparent 55%),
+                  linear-gradient(180deg, rgba(10,6,20,.45), rgba(10,6,20,.18));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-height: 360px;
+    }
+
+    canvas{
+      width:100%;
+      height:100%;
+      display:block;
+    }
+
+    .cornerHint{
+      position:absolute;
+      left:14px; bottom:12px;
+      font-size:12px;
+      color:rgba(246,242,255,.82);
+      background: rgba(12,6,20,.48);
+      border:1px solid rgba(255,255,255,.10);
+      padding:8px 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      user-select:none;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .kbd{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(246,242,255,.92);
+    }
+
+    /* Overlays */
+    .overlay{
+      position:absolute; inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background: radial-gradient(800px 500px at 50% 15%, rgba(255,60,120,.16), transparent 60%),
+                  rgba(0,0,0,.42);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+    .panel{
+      width:min(680px, 96%);
+      border-radius: 22px;
+      border:1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(18,10,31,.88), rgba(10,6,20,.78));
+      box-shadow: 0 22px 70px rgba(0,0,0,.58), 0 0 0 1px rgba(255,255,255,.06) inset;
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .panel:before{
+      content:"";
+      position:absolute; inset:-40px;
+      background: radial-gradient(circle at 20% 10%, rgba(255,60,120,.22), transparent 45%),
+                  radial-gradient(circle at 90% 40%, rgba(255,176,0,.14), transparent 46%),
+                  radial-gradient(circle at 40% 90%, rgba(138,91,255,.18), transparent 52%);
+      filter: blur(14px);
+      opacity:.75;
+      pointer-events:none;
+    }
+    .panel > *{position:relative}
+    .panel h1{
+      margin:0 0 8px;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .panel p{
+      margin:0 0 12px;
+      color: rgba(246,242,255,.88);
+      line-height:1.35;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:12px;
+    }
+    .box{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(10,6,20,.55);
+      padding:12px;
+    }
+    .box h3{margin:0 0 8px; font-size:13px; color:var(--muted); letter-spacing:.3px}
+    .box ul{margin:0; padding-left: 18px; color: rgba(246,242,255,.9)}
+    .box li{margin:6px 0}
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+      margin-top: 12px;
+    }
+
+    .tiny{
+      font-size:12px;
+      color: rgba(246,242,255,.72);
+    }
+
+    /* Fake microtransaction popup that blocks view */
+    .paywall{
+      position:absolute;
+      width: min(420px, 76vw);
+      border-radius: 20px;
+      border:1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, rgba(24,12,44,.92), rgba(10,6,20,.88));
+      box-shadow: 0 26px 80px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.06) inset;
+      padding: 14px;
+      z-index: 9;
+      transform: translateY(12px) scale(.98);
+      opacity: 0;
+      animation: popIn .18s ease-out forwards;
+      backdrop-filter: blur(10px);
+    }
+    @keyframes popIn{
+      to{transform: translateY(0) scale(1); opacity: 1;}
+    }
+    .paywall .head{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom: 8px;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight: 750;
+      letter-spacing:.2px;
+      font-size:12px;
+    }
+    .badge i{
+      width:10px; height:10px; border-radius:50%;
+      background: radial-gradient(circle at 30% 35%, rgba(255,255,255,.55), rgba(255,255,255,.0) 60%),
+                  linear-gradient(180deg, rgba(255,60,120,.95), rgba(255,176,0,.95));
+      box-shadow: 0 0 14px rgba(255,60,120,.35);
+      display:inline-block;
+    }
+    .xbtn{
+      border-radius: 12px;
+      padding:8px 10px;
+      background: rgba(255,255,255,.06);
+    }
+    .xbtn:hover{filter:brightness(1.1)}
+    .paywall h2{
+      margin:0 0 6px;
+      font-size: 15px;
+      letter-spacing:.2px;
+    }
+    .paywall p{
+      margin:0 0 12px;
+      color: rgba(246,242,255,.84);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .paywall .fineprint{
+      margin-top:8px;
+      color: rgba(246,242,255,.60);
+      font-size: 11px;
+    }
+    .paywall .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .paywall .actions .left{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .paywall .tinyClose{
+      font-size: 11px;
+      opacity: .65;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(10,6,20,.35);
+    }
+    .paywall .tinyClose:hover{opacity:.85}
+
+    .scrimBlock{
+      position:absolute; inset:0;
+      background: rgba(0,0,0,.10);
+      z-index: 8;
+      pointer-events:none; /* the popup itself handles interaction */
+    }
+    .blockedMask{
+      position:absolute;
+      border-radius: 18px;
+      background: rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset;
+      z-index: 7;
+      pointer-events:none;
+      backdrop-filter: blur(2px);
+      overflow:hidden;
+    }
+    .blockedMask:before{
+      content:"";
+      position:absolute; inset:-40px;
+      background: repeating-linear-gradient(
+        135deg,
+        rgba(255,255,255,.09) 0px,
+        rgba(255,255,255,.09) 8px,
+        rgba(255,255,255,.02) 8px,
+        rgba(255,255,255,.02) 16px
+      );
+      opacity:.55;
+      transform: rotate(5deg);
+    }
+    .blockedMask:after{
+      content:"MICROTRANSACTION AD ZONE";
+      position:absolute;
+      left:12px; bottom:10px;
+      font-family: var(--mono);
+      letter-spacing:.8px;
+      font-size:10px;
+      color: rgba(246,242,255,.55);
+    }
+
+    /* Toast notifications */
+    .toasts{
+      position:absolute;
+      right:14px; top:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      z-index: 6;
+      pointer-events:none;
+    }
+    .toast{
+      width:min(360px, 72vw);
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(10,6,20,.55);
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      padding:10px 12px;
+      backdrop-filter: blur(10px);
+      opacity:0;
+      transform: translateY(-8px);
+      animation: toastIn .18s ease-out forwards;
+    }
+    @keyframes toastIn{to{opacity:1; transform: translateY(0)}}
+    .toast b{display:block; font-size:12px; letter-spacing:.2px}
+    .toast span{display:block; font-size:12px; color: rgba(246,242,255,.76); margin-top:2px}
+
+    /* Mobile-ish tweaks */
+    @media (max-width: 720px){
+      .brand{min-width: 150px}
+      .controls{min-width: unset}
+      .grid2{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" aria-label="Hellcord Mod game">
+    <div class="topbar" role="banner">
+      <div class="brand" aria-label="Game title">
+        <div class="sigil" aria-hidden="true"></div>
+        <div class="title">
+          <b>HELLCORD MOD: Flap &amp; Ban</b>
+          <span>Manage a Discord server for demons. Stay airborne. Stay employed.</span>
+        </div>
+      </div>
+
+      <div class="hud" role="status" aria-label="Game stats">
+        <div class="pill" aria-label="Score">
+          <small>UPTIME</small>
+          <strong id="score">0</strong>
+        </div>
+        <div class="pill" aria-label="Soul coins">
+          <small>SOUL COINS</small>
+          <strong id="coins">0</strong>
+        </div>
+        <div class="pill" aria-label="Clear View buff">
+          <small>CLEAR VIEW</small>
+          <strong id="shield">OFF</strong>
+        </div>
+        <div class="pill" aria-label="Best score">
+          <small>BEST</small>
+          <strong id="best">0</strong>
+        </div>
+      </div>
+
+      <div class="controls" aria-label="Controls">
+        <button class="ghost" id="howBtn" aria-label="How to play (H)">How to play</button>
+        <button class="ghost" id="muteBtn" aria-label="Toggle sound (M)" aria-pressed="true">Sound: On</button>
+        <button class="primary" id="restartBtn" aria-label="Restart (R)">Restart</button>
+      </div>
+    </div>
+
+    <div class="stage" id="stage" aria-label="Game stage">
+      <canvas id="c" aria-label="Game canvas"></canvas>
+
+      <div class="toasts" id="toasts" aria-hidden="true"></div>
+
+      <!-- Context hint -->
+      <div class="cornerHint" aria-label="Quick controls">
+        <span class="kbd">Space</span><span>flap</span>
+        <span style="opacity:.55">•</span>
+        <span class="kbd">Esc</span><span>close popup</span>
+        <span style="opacity:.55">•</span>
+        <span class="kbd">B</span><span>buy clear view</span>
+      </div>
+
+      <!-- Start/Death overlay -->
+      <div class="overlay" id="mainOverlay" role="dialog" aria-modal="true" aria-label="Main menu" style="display:flex;">
+        <div class="panel">
+          <h1>Tonight's shift: <span style="color:var(--hot)">Demon Discord Moderator</span></h1>
+          <p>
+            Keep your imp aloft through the <b>Channel Gates</b>. Each gate you pass = your server survives another minute.
+            Meanwhile, "totally real" microtransactions will pop up and <b>block your view</b>. This is Hellcord. Of course they do.
+          </p>
+
+          <div class="grid2">
+            <div class="box">
+              <h3>Goal</h3>
+              <ul>
+                <li>Fly through as many gates as possible.</li>
+                <li>Earn <b>Soul Coins</b> to buy brief "Clear View" (no popups).</li>
+                <li>One collision and your mod contract is… <i>terminated</i>.</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h3>Controls</h3>
+              <ul>
+                <li><b>Space</b> / <b>↑</b> / click: flap.</li>
+                <li><b>Esc</b>: close a popup fast.</li>
+                <li><b>B</b>: buy "Clear View" when popup is up.</li>
+                <li><b>R</b>: restart. <b>H</b>: help. <b>M</b>: sound.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="tiny">Tip: popups can appear at the worst moments. Sometimes you must flap <i>blind</i>.</span>
+            <button class="primary" id="startBtn" aria-label="Start game">Start shift</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- How to play overlay -->
+      <div class="overlay" id="helpOverlay" role="dialog" aria-modal="true" aria-label="How to play" style="display:none;">
+        <div class="panel">
+          <h1>How to play</h1>
+          <p>
+            You are an exhausted imp trying to keep a demon Discord server stable by flying through moderation gates.
+            The platform keeps throwing <b>fake microtransaction popups</b> over your screen. You can dismiss them, or spend coins to stop them briefly.
+          </p>
+
+          <div class="grid2">
+            <div class="box">
+              <h3>What to watch for</h3>
+              <ul>
+                <li><b>Gates</b>: fly through the gap.</li>
+                <li><b>Speed</b> increases gradually as uptime rises.</li>
+                <li><b>Popups</b>: block vision. Close fast with <b>Esc</b> or the X.</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h3>"Microtransactions" (in-game only)</h3>
+              <ul>
+                <li><b>Buy Clear View</b>: costs <b>8 Soul Coins</b>.</li>
+                <li>Effect: disables popups for <b>12 seconds</b>.</li>
+                <li>All purchases are fictional. No real money. No tracking.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="ghost" id="closeHelpBtn" aria-label="Close help (H)">Close</button>
+            <button class="primary" id="helpStartBtn" aria-label="Start game from help">Start shift</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Popup blocking mask + popup container -->
+      <div class="blockedMask" id="blockedMask" aria-hidden="true" style="display:none;"></div>
+      <div class="scrimBlock" id="scrimBlock" aria-hidden="true" style="display:none;"></div>
+      <div class="paywall" id="paywall" role="dialog" aria-modal="true" aria-label="Fake microtransaction popup" style="display:none;">
+        <div class="head">
+          <div class="badge"><i aria-hidden="true"></i> Hellcord Store</div>
+          <button class="xbtn" id="closePaywallBtn" aria-label="Close popup (Esc)">✕</button>
+        </div>
+        <h2 id="payTitle">Limited offer: "See the Screen" Pack</h2>
+        <p id="payBody">For a small, ethically questionable fee, we'll reduce popups for 12 seconds. Totally not extortion.</p>
+        <div class="actions">
+          <div class="left">
+            <button class="good" id="buyBtn" aria-label="Buy Clear View (B)">Buy: 8 Soul Coins</button>
+            <button class="tinyClose" id="noThanksBtn" aria-label="No thanks, close popup">No thanks (I enjoy suffering)</button>
+          </div>
+          <div class="tiny" id="payHint">Tip: You can still flap while this is open.</div>
+        </div>
+        <div class="fineprint">
+          Fictional purchase. No real money. Your soul remains non-refundable.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      // ============================================================
+      // Utility
+      // ============================================================
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const rand = (a, b) => a + Math.random() * (b - a);
+      const chance = (p) => Math.random() < p;
+
+      // DOM
+      const canvas = document.getElementById("c");
+      const stage = document.getElementById("stage");
+      const scoreEl = document.getElementById("score");
+      const coinsEl = document.getElementById("coins");
+      const shieldEl = document.getElementById("shield");
+      const bestEl = document.getElementById("best");
+
+      const mainOverlay = document.getElementById("mainOverlay");
+      const helpOverlay = document.getElementById("helpOverlay");
+
+      const startBtn = document.getElementById("startBtn");
+      const restartBtn = document.getElementById("restartBtn");
+      const howBtn = document.getElementById("howBtn");
+      const closeHelpBtn = document.getElementById("closeHelpBtn");
+      const helpStartBtn = document.getElementById("helpStartBtn");
+      const muteBtn = document.getElementById("muteBtn");
+
+      const paywall = document.getElementById("paywall");
+      const scrimBlock = document.getElementById("scrimBlock");
+      const blockedMask = document.getElementById("blockedMask");
+      const closePaywallBtn = document.getElementById("closePaywallBtn");
+      const buyBtn = document.getElementById("buyBtn");
+      const noThanksBtn = document.getElementById("noThanksBtn");
+      const payTitle = document.getElementById("payTitle");
+      const payBody = document.getElementById("payBody");
+      const toasts = document.getElementById("toasts");
+
+      // ============================================================
+      // Audio (simple WebAudio synth)
+      // ============================================================
+      let audioOn = true;
+      let audioCtx = null;
+      let master = null;
+
+      function ensureAudio(){
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        master = audioCtx.createGain();
+        master.gain.value = 0.18;
+        master.connect(audioCtx.destination);
+      }
+
+      function beep(type="sine", freq=440, dur=0.08, gain=0.35){
+        if (!audioOn) return;
+        ensureAudio();
+        const t0 = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, t0);
+
+        // Envelope
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.linearRampToValueAtTime(gain, t0 + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+        osc.connect(g);
+        g.connect(master);
+        osc.start(t0);
+        osc.stop(t0 + dur + 0.02);
+      }
+
+      function thump(){
+        // "hit" sound
+        beep("square", 120, 0.10, 0.45);
+        setTimeout(() => beep("sawtooth", 65, 0.12, 0.25), 10);
+      }
+
+      function sparkle(){
+        beep("triangle", 740, 0.06, 0.28);
+        setTimeout(() => beep("sine", 980, 0.05, 0.18), 20);
+      }
+
+      function flapSound(){
+        beep("triangle", 420 + rand(-40, 40), 0.05, 0.25);
+      }
+
+      // ============================================================
+      // Canvas sizing
+      // ============================================================
+      const ctx = canvas.getContext("2d", { alpha: false });
+
+      // Logical game size (we scale to fit)
+      const W = 900;
+      const H = 520;
+
+      function resize(){
+        const dpr = Math.max(1, Math.min(2.25, window.devicePixelRatio || 1));
+        const rect = stage.getBoundingClientRect();
+        canvas.width = Math.floor(rect.width * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
+        ctx.setTransform(1,0,0,1,0,0);
+        ctx.scale(dpr, dpr);
+      }
+      window.addEventListener("resize", resize, { passive: true });
+      resize();
+
+      // ============================================================
+      // Game state
+      // ============================================================
+      const STORAGE_KEY = "hellcord_best";
+      let best = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10) || 0;
+      bestEl.textContent = best;
+
+      let state = "menu"; // menu | playing | dead
+      let lastTime = 0;
+
+      // Player
+      const player = {
+        x: 220,
+        y: H * 0.45,
+        r: 19,
+        vy: 0,
+        rot: 0,
+        flapQueued: false
+      };
+
+      // Physics
+      const GRAV = 1700;
+      const FLAP = -530;
+
+      // Gates
+      const gates = [];
+      let gateTimer = 0;
+      let gateEvery = 1.34;
+      let gateSpeed = 270;
+      let gapSize = 172;
+
+      // Score & economy
+      let score = 0;
+      let coins = 0;
+
+      // Visual effects
+      const embers = [];
+      const sigils = [];
+      let shake = 0;
+
+      // Microtransaction popup system
+      let popupTimer = 0;
+      let popupCooldownBase = 7.8; // seconds
+      let popupActive = false;
+      let clearView = 0; // seconds remaining
+      const CLEAR_VIEW_COST = 8;
+      const CLEAR_VIEW_SECS = 12;
+
+      // Input
+      let pointerDown = false;
+
+      // ============================================================
+      // UI helpers
+      // ============================================================
+      function setOverlay(which){
+        mainOverlay.style.display = (which === "menu") ? "flex" : "none";
+        helpOverlay.style.display = (which === "help") ? "flex" : "none";
+      }
+
+      function toast(title, body){
+        const el = document.createElement("div");
+        el.className = "toast";
+        el.innerHTML = `<b>${escapeHtml(title)}</b><span>${escapeHtml(body)}</span>`;
+        toasts.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = "0";
+          el.style.transform = "translateY(-6px)";
+          el.style.transition = "opacity .22s ease, transform .22s ease";
+        }, 2100);
+        setTimeout(() => el.remove(), 2500);
+      }
+
+      function escapeHtml(str){
+        return String(str).replace(/[&<>"']/g, s => ({
+          "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+        }[s]));
+      }
+
+      function updateHud(){
+        scoreEl.textContent = score;
+        coinsEl.textContent = coins;
+        if (clearView > 0){
+          shieldEl.textContent = `${Math.ceil(clearView)}s`;
+          shieldEl.style.color = "var(--good)";
+        } else {
+          shieldEl.textContent = "OFF";
+          shieldEl.style.color = "";
+        }
+      }
+
+      function resetRun(){
+        player.y = H * 0.45;
+        player.vy = 0;
+        player.rot = 0;
+        gates.length = 0;
+        gateTimer = 0;
+        gateEvery = 1.34;
+        gateSpeed = 270;
+        gapSize = 172;
+        score = 0;
+        coins = 0;
+        embers.length = 0;
+        sigils.length = 0;
+        shake = 0;
+        popupTimer = rand(3.8, 5.0);
+        popupActive = false;
+        clearView = 0;
+        closePaywall();
+        updateHud();
+      }
+
+      function startGame(){
+        // unlock audio on first interaction
+        if (audioOn) ensureAudio();
+        resetRun();
+        state = "playing";
+        setOverlay("none");
+        toast("Shift started", "Keep the server alive. Avoid the channel gates.");
+      }
+
+      function endGame(){
+        state = "dead";
+        closePaywall();
+        shake = 0.35;
+
+        if (score > best){
+          best = score;
+          localStorage.setItem(STORAGE_KEY, String(best));
+          bestEl.textContent = best;
+          toast("New best uptime!", `You survived ${score} gates. The demons are… impressed.`);
+          sparkle();
+        } else {
+          toast("Mod contract terminated", `Uptime: ${score}. The admins blame you anyway.`);
+        }
+      }
+
+      // ============================================================
+      // Popups (fake microtransactions)
+      // ============================================================
+      const offerLines = [
+        ["Limited offer: "See the Screen" Pack", "Reduce popups for 12 seconds. Totally not extortion."],
+        ["Deal of Doom: "Adblock Sigil"", "A protective rune that stops popups briefly. Price may include your dignity."],
+        ["Special Bundle: "Clarity of Vision"", "When you need to flap through chaos with your eyes open."],
+        ["Subscriber Perk: "Clear View"", "Because gameplay is a premium feature in Hellcord."]
+      ];
+
+      function showPaywall(){
+        if (popupActive || state !== "playing") return;
+        popupActive = true;
+
+        // Random offer copy (still clearly fake)
+        const [t, b] = offerLines[(Math.random() * offerLines.length) | 0];
+        payTitle.textContent = t;
+        payBody.textContent = b;
+
+        // Move popup to a random annoying position (blocks view)
+        const rect = stage.getBoundingClientRect();
+        const pad = 18;
+        const pw = Math.min(420, rect.width - pad*2);
+        const ph = 210;
+
+        // Allowed positions (avoid going off-screen)
+        const px = rand(pad, Math.max(pad, rect.width - pw - pad));
+        const py = rand(64, Math.max(80, rect.height - ph - pad));
+
+        paywall.style.left = px + "px";
+        paywall.style.top = py + "px";
+
+        // Big blocked region somewhere else too
+        const maskW = Math.min(340, rect.width * rand(0.32, 0.45));
+        const maskH = Math.min(240, rect.height * rand(0.28, 0.42));
+        const mx = clamp(px + rand(-200, 200), pad, rect.width - maskW - pad);
+        const my = clamp(py + rand(-160, 160), 64, rect.height - maskH - pad);
+
+        blockedMask.style.left = mx + "px";
+        blockedMask.style.top = my + "px";
+        blockedMask.style.width = maskW + "px";
+        blockedMask.style.height = maskH + "px";
+
+        // Show
+        scrimBlock.style.display = "block";
+        blockedMask.style.display = "block";
+        paywall.style.display = "block";
+
+        // Update buy button state
+        updateBuyButton();
+
+        // Nudge player with an infuriating toast
+        toast("⚠ Store interrupt", "A popup blocked your view. Close it fast or buy Clear View.");
+        beep("sawtooth", 330, 0.06, 0.20);
+        setTimeout(() => beep("triangle", 220, 0.08, 0.18), 20);
+      }
+
+      function updateBuyButton(){
+        const canBuy = coins >= CLEAR_VIEW_COST;
+        buyBtn.disabled = !canBuy;
+        buyBtn.textContent = canBuy ? `Buy: ${CLEAR_VIEW_COST} Soul Coins` : `Need ${CLEAR_VIEW_COST} Soul Coins`;
+      }
+
+      function closePaywall(){
+        popupActive = false;
+        paywall.style.display = "none";
+        scrimBlock.style.display = "none";
+        blockedMask.style.display = "none";
+      }
+
+      function buyClearView(){
+        if (state !== "playing" || !popupActive) return;
+        if (coins < CLEAR_VIEW_COST){
+          toast("Insufficient souls", "Earn coins by passing gates. Or suffer. (Recommended.)");
+          beep("square", 160, 0.07, 0.20);
+          return;
+        }
+        coins -= CLEAR_VIEW_COST;
+        clearView = CLEAR_VIEW_SECS;
+        closePaywall();
+        toast("Clear View activated", "Popups suppressed for 12 seconds.");
+        sparkle();
+        updateHud();
+      }
+
+      // ============================================================
+      // Input
+      // ============================================================
+      function flap(){
+        if (state === "menu"){
+          startGame();
+          return;
+        }
+        if (state !== "playing") return;
+
+        // Even with popup, you can flap.
+        player.vy = FLAP;
+        player.rot = -0.55;
+        spawnEmbers(player.x - 8, player.y, 14);
+        flapSound();
+      }
+
+      function onPointerDown(e){
+        pointerDown = true;
+        // Audio unlock on first gesture
+        if (audioOn) ensureAudio();
+        flap();
+      }
+      function onPointerUp(){ pointerDown = false; }
+
+      stage.addEventListener("pointerdown", onPointerDown);
+      window.addEventListener("pointerup", onPointerUp);
+
+      window.addEventListener("keydown", (e) => {
+        const key = e.key.toLowerCase();
+
+        // Prevent space from scrolling
+        if (key === " " || e.key === "ArrowUp") e.preventDefault();
+
+        if (key === "h"){
+          toggleHelp();
+          return;
+        }
+        if (key === "m"){
+          toggleSound();
+          return;
+        }
+        if (key === "r"){
+          if (state === "playing" || state === "dead" || state === "menu"){
+            startGame();
+          }
+          return;
+        }
+
+        if (key === "escape"){
+          if (popupActive) closePaywall();
+          return;
+        }
+
+        if (key === "b"){
+          if (popupActive) buyClearView();
+          return;
+        }
+
+        if (key === " " || e.key === "ArrowUp"){
+          flap();
+        }
+      }, { passive: false });
+
+      function toggleHelp(){
+        if (helpOverlay.style.display !== "none"){
+          helpOverlay.style.display = "none";
+          if (state === "menu") mainOverlay.style.display = "flex";
+        } else {
+          mainOverlay.style.display = "none";
+          helpOverlay.style.display = "flex";
+        }
+      }
+
+      function toggleSound(){
+        audioOn = !audioOn;
+        muteBtn.textContent = audioOn ? "Sound: On" : "Sound: Off";
+        muteBtn.setAttribute("aria-pressed", audioOn ? "true" : "false");
+        if (audioOn){
+          ensureAudio();
+          beep("sine", 540, 0.06, 0.16);
+        }
+      }
+
+      // Buttons
+      startBtn.addEventListener("click", startGame);
+      helpStartBtn.addEventListener("click", startGame);
+      restartBtn.addEventListener("click", startGame);
+      howBtn.addEventListener("click", () => { mainOverlay.style.display = "none"; helpOverlay.style.display = "flex"; });
+      closeHelpBtn.addEventListener("click", () => {
+        helpOverlay.style.display = "none";
+        if (state === "menu") mainOverlay.style.display = "flex";
+      });
+      muteBtn.addEventListener("click", toggleSound);
+
+      closePaywallBtn.addEventListener("click", closePaywall);
+      noThanksBtn.addEventListener("click", closePaywall);
+      buyBtn.addEventListener("click", buyClearView);
+
+      // ============================================================
+      // Particles & visuals
+      // ============================================================
+      function spawnEmbers(x, y, n){
+        for (let i=0;i<n;i++){
+          embers.push({
+            x, y,
+            vx: rand(-180, -40),
+            vy: rand(-120, 120),
+            life: rand(0.25, 0.55),
+            t: 0,
+            s: rand(2.5, 5.0)
+          });
+        }
+      }
+
+      function spawnSigil(x, y){
+        sigils.push({
+          x, y,
+          r: rand(8, 13),
+          life: rand(0.45, 0.75),
+          t: 0,
+          spin: rand(-3, 3),
+          hue: chance(0.6) ? "hot" : "violet"
+        });
+      }
+
+      // ============================================================
+      // Gates
+      // ============================================================
+      function addGate(){
+        const gapY = rand(H*0.22, H*0.78);
+        const width = 92;
+        const thickness = 18;
+        gates.push({
+          x: W + 40,
+          w: width,
+          gapY,
+          gap: gapSize,
+          scored: false,
+          teeth: thickness,
+          phase: rand(0, Math.PI*2)
+        });
+      }
+
+      function circleRectCollide(cx, cy, cr, rx, ry, rw, rh){
+        const closestX = clamp(cx, rx, rx + rw);
+        const closestY = clamp(cy, ry, ry + rh);
+        const dx = cx - closestX;
+        const dy = cy - closestY;
+        return (dx*dx + dy*dy) <= cr*cr;
+      }
+
+      // ============================================================
+      // Update & Render
+      // ============================================================
+      function update(dt){
+        if (state !== "playing") return;
+
+        // Difficulty curve
+        gateSpeed += dt * 4.2;            // slow ramp
+        gapSize = clamp(gapSize - dt*2.2, 132, 172);
+        gateEvery = clamp(gateEvery - dt*0.006, 1.08, 1.34);
+
+        // Player physics
+        player.vy += GRAV * dt;
+        player.y += player.vy * dt;
+
+        // Rotation response
+        const targetRot = clamp(player.vy / 850, -0.65, 1.15);
+        player.rot += (targetRot - player.rot) * (1 - Math.pow(0.001, dt));
+
+        // Boundaries
+        if (player.y < player.r){
+          player.y = player.r;
+          player.vy = 0;
+        }
+        if (player.y > H - player.r){
+          // Ground hit
+          thump();
+          endGame();
+          return;
+        }
+
+        // Gates
+        gateTimer -= dt;
+        if (gateTimer <= 0){
+          addGate();
+          gateTimer = gateEvery;
+        }
+
+        for (let i=gates.length-1; i>=0; i--){
+          const g = gates[i];
+          g.x -= gateSpeed * dt;
+          g.phase += dt * 2.1;
+
+          if (!g.scored && g.x + g.w < player.x - player.r){
+            g.scored = true;
+            score++;
+            coins++;
+            updateHud();
+            // little dopamine
+            beep("sine", 520 + score*2, 0.05, 0.14);
+            if (chance(0.35)) toast("✅ Drama contained", `Uptime +1. Soul Coins +1.`);
+          }
+
+          if (g.x + g.w < -80){
+            gates.splice(i, 1);
+            continue;
+          }
+
+          // Collision with top/bottom rectangles
+          const topH = (g.gapY - g.gap/2);
+          const botY = (g.gapY + g.gap/2);
+          const botH = H - botY;
+
+          if (
+            circleRectCollide(player.x, player.y, player.r, g.x, 0, g.w, topH) ||
+            circleRectCollide(player.x, player.y, player.r, g.x, botY, g.w, botH)
+          ){
+            thump();
+            endGame();
+            return;
+          }
+        }
+
+        // Popups & Clear View
+        if (clearView > 0){
+          clearView = Math.max(0, clearView - dt);
+          if (clearView === 0){
+            toast("Clear View ended", "Popups are back. Naturally.");
+            beep("triangle", 260, 0.06, 0.16);
+          }
+        } else {
+          popupTimer -= dt;
+          if (popupTimer <= 0 && !popupActive){
+            showPaywall();
+            // Next popup timer (slightly evil randomness)
+            popupTimer = rand(popupCooldownBase*0.75, popupCooldownBase*1.25);
+            // Occasionally chain to mimic "dark patterns"
+            if (chance(0.15)) popupTimer = rand(3.6, 5.2);
+          }
+        }
+
+        // Update buy state if popup is open (coins changed with score)
+        if (popupActive) updateBuyButton();
+
+        // Particles
+        for (let i=embers.length-1;i>=0;i--){
+          const p = embers[i];
+          p.t += dt;
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.vy += 520 * dt;
+          if (p.t > p.life) embers.splice(i, 1);
+        }
+
+        // Ambient sigils
+        if (chance(dt * 0.9)){
+          spawnSigil(rand(0, W), rand(0, H));
+        }
+        for (let i=sigils.length-1;i>=0;i--){
+          const s = sigils[i];
+          s.t += dt;
+          s.r += dt * 10;
+          if (s.t > s.life) sigils.splice(i, 1);
+        }
+
+        // Screen shake decay
+        shake = Math.max(0, shake - dt * 2.3);
+      }
+
+      function render(t){
+        // Fit logical game into canvas while preserving aspect
+        const rect = stage.getBoundingClientRect();
+        const scale = Math.min(rect.width / W, rect.height / H);
+        const ox = (rect.width - W * scale) / 2;
+        const oy = (rect.height - H * scale) / 2;
+
+        ctx.setTransform(1,0,0,1,0,0);
+        ctx.clearRect(0,0,rect.width,rect.height);
+
+        // Camera shake
+        const sx = (Math.random() - 0.5) * 14 * shake;
+        const sy = (Math.random() - 0.5) * 14 * shake;
+
+        ctx.translate(ox + sx, oy + sy);
+        ctx.scale(scale, scale);
+
+        // Background
+        drawBackground(t);
+
+        // Gates
+        drawGates(t);
+
+        // Player
+        drawPlayer(t);
+
+        // Particles on top
+        drawParticles(t);
+
+        // Foreground UI hint inside canvas (subtle)
+        drawInCanvasHint();
+
+        // If dead, draw banner
+        if (state === "dead"){
+          drawDeadBanner();
+        }
+      }
+
+      function drawBackground(t){
+        // Base gradient
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, "#090611");
+        g.addColorStop(0.45, "#160a25");
+        g.addColorStop(1, "#05030a");
+        ctx.fillStyle = g;
+        ctx.fillRect(0,0,W,H);
+
+        // Parallax fog bands
+        const time = t * 0.001;
+        for (let i=0;i<6;i++){
+          const y = (i/6) * H + Math.sin(time*0.7 + i*1.2) * 14;
+          const alpha = 0.08 + i*0.012;
+          ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+          const xOff = (time*60*(i%2?1:-1)) % (W+400);
+          ctx.beginPath();
+          ctx.ellipse(W/2 - xOff + 220, y, 520, 58, 0, 0, Math.PI*2);
+          ctx.ellipse(W/2 - xOff - 220, y+24, 520, 58, 0, 0, Math.PI*2);
+          ctx.fill();
+        }
+
+        // Distant ember sparks
+        ctx.globalAlpha = 0.35;
+        for (let i=0;i<36;i++){
+          const x = (i*97 + (time*80)) % (W+140) - 70;
+          const y = (i*53 + (time*28)) % (H+120) - 60;
+          const r = 1.3 + (i%5)*0.25;
+          ctx.fillStyle = i%3===0 ? "rgba(255,60,120,.35)" : "rgba(255,176,0,.25)";
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI*2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // Floor glow
+        const fg = ctx.createLinearGradient(0, H-120, 0, H);
+        fg.addColorStop(0, "rgba(255,60,120,.00)");
+        fg.addColorStop(1, "rgba(255,60,120,.12)");
+        ctx.fillStyle = fg;
+        ctx.fillRect(0, H-120, W, 120);
+      }
+
+      function drawGates(t){
+        for (const g of gates){
+          const topH = (g.gapY - g.gap/2);
+          const botY = (g.gapY + g.gap/2);
+
+          // Gate body
+          drawGateChunk(g.x, 0, g.w, topH, g.phase, true);
+          drawGateChunk(g.x, botY, g.w, H - botY, g.phase, false);
+
+          // Inner "teeth" (like demonic channel dividers)
+          ctx.save();
+          ctx.translate(g.x + g.w/2, g.gapY);
+          ctx.globalAlpha = 0.95;
+          ctx.fillStyle = "rgba(255,255,255,.06)";
+          for (let i=-4;i<=4;i++){
+            const yy = i * 10;
+            const w = 22 - Math.abs(i)*3;
+            ctx.beginPath();
+            ctx.moveTo(-w, yy);
+            ctx.lineTo(0, yy + (i%2?8:-8));
+            ctx.lineTo(w, yy);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.restore();
+
+          // Score line
+          ctx.globalAlpha = 0.18;
+          ctx.strokeStyle = "rgba(98,255,177,.75)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(g.x + g.w, g.gapY);
+          ctx.lineTo(g.x + g.w + 18, g.gapY);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      function drawGateChunk(x, y, w, h, phase, top){
+        // Outer glow
+        ctx.save();
+        ctx.shadowColor = "rgba(255,60,120,.22)";
+        ctx.shadowBlur = 22;
+        ctx.fillStyle = "rgba(255,60,120,.08)";
+        ctx.fillRect(x-6, y-6, w+12, h+12);
+        ctx.restore();
+
+        // Body gradient
+        const grad = ctx.createLinearGradient(x, y, x+w, y+h);
+        grad.addColorStop(0, "rgba(138,91,255,.18)");
+        grad.addColorStop(0.35, "rgba(255,60,120,.18)");
+        grad.addColorStop(1, "rgba(0,0,0,.35)");
+        ctx.fillStyle = grad;
+        roundRect(ctx, x, y, w, h, 12);
+        ctx.fill();
+
+        // Stroke
+        ctx.strokeStyle = "rgba(255,255,255,.12)";
+        ctx.lineWidth = 2;
+        roundRect(ctx, x, y, w, h, 12);
+        ctx.stroke();
+
+        // Animated rune lines
+        ctx.save();
+        ctx.globalAlpha = 0.22;
+        ctx.strokeStyle = top ? "rgba(255,176,0,.70)" : "rgba(98,255,177,.70)";
+        ctx.lineWidth = 1.5;
+        const n = 4;
+        for (let i=0;i<n;i++){
+          const yy = y + (h*(i+1)/(n+1)) + Math.sin(phase + i*1.7) * 6;
+          ctx.beginPath();
+          ctx.moveTo(x + 12, yy);
+          ctx.lineTo(x + w - 12, yy);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // "Mod logs" icons inside
+        ctx.save();
+        ctx.globalAlpha = 0.18;
+        ctx.fillStyle = "rgba(255,255,255,.85)";
+        const cols = 3;
+        const rows = Math.max(2, Math.floor(h / 80));
+        for (let r=0;r<rows;r++){
+          for (let c=0;c<cols;c++){
+            const px = x + 14 + c*(w-28)/(cols-1);
+            const py = y + 18 + r*(h-36)/Math.max(1, (rows-1));
+            ctx.beginPath();
+            ctx.arc(px, py, 3, 0, Math.PI*2);
+            ctx.fill();
+          }
+        }
+        ctx.restore();
+      }
+
+      function drawPlayer(t){
+        const time = t * 0.001;
+
+        // Shadow
+        ctx.save();
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.ellipse(player.x + 8, player.y + 18, 20, 10, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        // Body
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        ctx.rotate(player.rot);
+
+        // Glow
+        ctx.save();
+        ctx.shadowColor = "rgba(98,255,177,.22)";
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = "rgba(98,255,177,.10)";
+        ctx.beginPath();
+        ctx.arc(0, 0, player.r+6, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        // Torso gradient
+        const bodyGrad = ctx.createRadialGradient(-6, -8, 4, 0, 0, player.r+8);
+        bodyGrad.addColorStop(0, "rgba(255,255,255,.22)");
+        bodyGrad.addColorStop(0.25, "rgba(138,91,255,.95)");
+        bodyGrad.addColorStop(0.75, "rgba(255,60,120,.92)");
+        bodyGrad.addColorStop(1, "rgba(10,6,20,.95)");
+        ctx.fillStyle = bodyGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, player.r, 0, Math.PI*2);
+        ctx.fill();
+
+        // Horns
+        ctx.fillStyle = "rgba(255,176,0,.92)";
+        ctx.beginPath();
+        ctx.moveTo(-10, -14);
+        ctx.quadraticCurveTo(-18, -26, -8, -28);
+        ctx.quadraticCurveTo(-6, -22, -2, -16);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(6, -16);
+        ctx.quadraticCurveTo(18, -26, 10, -30);
+        ctx.quadraticCurveTo(8, -24, 8, -16);
+        ctx.closePath();
+        ctx.fill();
+
+        // Wings (flap animation)
+        const flap = Math.sin(time*18) * 0.35 + 0.55;
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = "rgba(246,242,255,.14)";
+        ctx.beginPath();
+        ctx.ellipse(-16, 0, 14, 8, -0.65 - flap*0.25, 0, Math.PI*2);
+        ctx.ellipse(16, 0, 14, 8, 0.65 + flap*0.25, 0, Math.PI*2);
+        ctx.fill();
+
+        // Eye
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = "rgba(0,0,0,.55)";
+        ctx.beginPath();
+        ctx.arc(6, -2, 7, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(98,255,177,.92)";
+        ctx.beginPath();
+        ctx.arc(7, -3, 3.2, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,.85)";
+        ctx.beginPath();
+        ctx.arc(8.6, -4.2, 1.1, 0, Math.PI*2);
+        ctx.fill();
+
+        // Tiny "mod badge"
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = "rgba(255,255,255,.08)";
+        roundRect(ctx, -11, 10, 22, 8, 4);
+        ctx.fill();
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = "rgba(255,255,255,.55)";
+        ctx.fillRect(-8, 12, 16, 1.6);
+
+        ctx.restore();
+      }
+
+      function drawParticles(t){
+        // Embers
+        for (const p of embers){
+          const a = 1 - (p.t / p.life);
+          ctx.globalAlpha = a * 0.9;
+          const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.s*3);
+          glow.addColorStop(0, "rgba(255,176,0,.35)");
+          glow.addColorStop(0.35, "rgba(255,60,120,.20)");
+          glow.addColorStop(1, "rgba(255,60,120,0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.s*2.2, 0, Math.PI*2);
+          ctx.fill();
+
+          ctx.globalAlpha = a;
+          ctx.fillStyle = "rgba(255,255,255,.25)";
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.s*0.6, 0, Math.PI*2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // Ambient sigils
+        for (const s of sigils){
+          const a = 1 - (s.t / s.life);
+          ctx.save();
+          ctx.globalAlpha = a * 0.55;
+          ctx.translate(s.x, s.y);
+          ctx.rotate(s.spin * s.t);
+
+          ctx.strokeStyle = s.hue === "hot" ? "rgba(255,60,120,.55)" : "rgba(138,91,255,.55)";
+          ctx.lineWidth = 1.5;
+
+          ctx.beginPath();
+          ctx.arc(0,0, s.r, 0, Math.PI*2);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(0,0, s.r*0.65, 0, Math.PI*2);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(-s.r, 0);
+          ctx.lineTo(s.r, 0);
+          ctx.stroke();
+
+          ctx.restore();
+        }
+      }
+
+      function drawInCanvasHint(){
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.font = "12px " + getComputedStyle(document.documentElement).getPropertyValue("--mono");
+        ctx.fillStyle = "rgba(246,242,255,.70)";
+
+        if (state === "playing"){
+          const msg = popupActive
+            ? "POPUP ACTIVE: Esc to close • B to buy Clear View"
+            : (clearView > 0 ? "CLEAR VIEW ACTIVE: no popups for now" : "Stay sharp: popups will return.");
+          ctx.fillText(msg, 14, 20);
+        } else if (state === "menu"){
+          ctx.fillText("Press Space to start.", 14, 20);
+        }
+        ctx.restore();
+      }
+
+      function drawDeadBanner(){
+        ctx.save();
+        ctx.globalAlpha = 0.92;
+        ctx.fillStyle = "rgba(0,0,0,.35)";
+        roundRect(ctx, W*0.18, H*0.28, W*0.64, H*0.32, 18);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,.14)";
+        ctx.lineWidth = 2;
+        roundRect(ctx, W*0.18, H*0.28, W*0.64, H*0.32, 18);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(246,242,255,.92)";
+        ctx.font = "800 28px " + getComputedStyle(document.documentElement).getPropertyValue("--sans");
+        ctx.fillText("SHIFT OVER", W*0.34, H*0.39);
+
+        ctx.font = "14px " + getComputedStyle(document.documentElement).getPropertyValue("--sans");
+        ctx.fillStyle = "rgba(246,242,255,.82)";
+        ctx.fillText(`Uptime: ${score} gates • Soul Coins: ${coins}`, W*0.31, H*0.44);
+
+        ctx.fillStyle = "rgba(246,242,255,.70)";
+        ctx.font = "12px " + getComputedStyle(document.documentElement).getPropertyValue("--mono");
+        ctx.fillText("Press R to restart • Space to flap", W*0.31, H*0.50);
+        ctx.restore();
+      }
+
+      function roundRect(c, x, y, w, h, r){
+        const rr = Math.min(r, w/2, h/2);
+        c.beginPath();
+        c.moveTo(x+rr, y);
+        c.arcTo(x+w, y, x+w, y+h, rr);
+        c.arcTo(x+w, y+h, x, y+h, rr);
+        c.arcTo(x, y+h, x, y, rr);
+        c.arcTo(x, y, x+w, y, rr);
+        c.closePath();
+      }
+
+      // ============================================================
+      // Main loop
+      // ============================================================
+      function loop(ts){
+        const t = ts || 0;
+        const dt = clamp((t - lastTime) / 1000, 0, 0.033);
+        lastTime = t;
+
+        update(dt);
+        render(t);
+
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+
+      // ============================================================
+      // Initial UI setup
+      // ============================================================
+      updateHud();
+
+      // In menu by default
+      setOverlay("menu");
+      toast("Welcome to Hellcord", "Press Space or click to begin your shift.");
+
+      // Make sure keyboard focus starts somewhere sensible
+      startBtn.focus({ preventScroll: true });
+
+      // ============================================================
+      // Extra: nudge more popups as score rises (subtle)
+      // ============================================================
+      setInterval(() => {
+        if (state !== "playing") return;
+        // As score increases, the platform gets greedier.
+        popupCooldownBase = clamp(8.2 - score * 0.04, 4.6, 8.2);
+      }, 1000);
+
+    })();
+  </script>
+</body>
+</html>

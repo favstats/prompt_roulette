@@ -254,9 +254,49 @@
     /* Focus */
     button:focus, textarea:focus, input:focus {outline:none; box-shadow: 0 0 0 3px rgba(0,243,255,0.18);}
 
+    /* 8bit pixel effects */
+    .pixel-border{
+      border: 2px solid;
+      border-image: 
+        linear-gradient(45deg, var(--neon-pink), var(--neon-cyan)) 1;
+      image-rendering: pixelated;
+    }
+    .pixel-text{
+      image-rendering: pixelated;
+      text-rendering: optimizeSpeed;
+    }
+    @keyframes pixel-flicker{
+      0%,100%{opacity:1;}
+      50%{opacity:0.8;}
+    }
+    .pixel-flicker{animation: pixel-flicker 0.1s infinite;}
+    
+    /* Difficulty mode active states */
+    .mode-active-normal{
+      border: 2px solid var(--neon-green)!important;
+      background: rgba(47,225,140,0.2)!important;
+      box-shadow: 0 0 12px rgba(47,225,140,0.5)!important;
+    }
+    .mode-active-chaos{
+      border: 2px solid var(--neon-yellow)!important;
+      background: rgba(255,209,102,0.2)!important;
+      box-shadow: 0 0 12px rgba(255,209,102,0.5)!important;
+    }
+    .mode-active-brainrot{
+      border: 2px solid var(--neon-pink)!important;
+      background: rgba(255,0,222,0.2)!important;
+      box-shadow: 0 0 12px rgba(255,0,222,0.5)!important;
+    }
+
+    /* Turn display enhancement */
+    .turn-display{
+      font-family: 'Press Start 2P', cursive;
+      text-shadow: 2px 2px 0px #000, 0 0 8px rgba(0,243,255,0.8);
+    }
+
     /* Reduce motion */
     @media (prefers-reduced-motion: reduce){
-      .is-spinning, .pulseHint{animation:none!important;}
+      .is-spinning, .pulseHint, .pixel-flicker{animation:none!important;}
     }
   </style>
 </head>
@@ -275,21 +315,26 @@
           <div class="arcade-font text-xs text-neon-cyan">HOW IT WORKS</div>
           <div class="text-sm leading-relaxed text-white/80">
             <ol class="list-decimal pl-5 space-y-2">
-              <li><b>Spin</b> to lock three variables in sequence: <span class="text-neon-pink">X</span> story, <span class="text-neon-cyan">Y</span> genre, <span class="text-neon-pink">Z</span> twist.</li>
-              <li><b>Copy prompt</b> and paste it into any LLM.</li>
+              <li><b>Choose difficulty:</b> <span class="text-neon-green">NORMAL</span> (1x points), <span class="text-neon-yellow">CHAOS</span> (2x points), or <span class="text-neon-pink">BRAINROT</span> (3x points).</li>
+              <li><b>Spin</b> the wheel to lock three variables: <span class="text-neon-pink">X</span> story, <span class="text-neon-cyan">Y</span> genre, <span class="text-neon-pink">Z</span> twist.</li>
+              <li><b>Copy prompt</b> and paste it into any LLM (ChatGPT, Claude, etc.).</li>
               <li>Ask for <b>a single HTML file</b>, open it in your browser, and play the generated game.</li>
-              <li>When you win/lose, log it in the <b>High Scores</b>.</li>
+              <li>When you win/lose, log it in <b>High Scores</b>. Points multiply by difficulty!</li>
+              <li>Track turns and compete over multiple rounds.</li>
             </ol>
           </div>
 
-          <div class="pixelBox">
-            <div class="miniTitle">Pro tips</div>
-            <div class="text-sm text-white/75 mt-2 space-y-2">
-              <div>• Use <span class="kbd arcade-font text-[10px] px-2 py-1 rounded bg-black/60 border border-white/10">SPACE</span> to spin.</div>
-              <div>• Use <span class="kbd arcade-font text-[10px] px-2 py-1 rounded bg-black/60 border border-white/10">C</span> to copy the prompt.</div>
-              <div>• While the LLM generates: open the <b>Arcade Lounge</b> and play a micro-game.</div>
+            <div class="pixelBox">
+              <div class="miniTitle">Pro tips</div>
+              <div class="text-sm text-white/75 mt-2 space-y-2">
+                <div>• Use <span class="kbd arcade-font text-[10px] px-2 py-1 rounded bg-black/60 border border-white/10">SPACE</span> to spin.</div>
+                <div>• Use <span class="kbd arcade-font text-[10px] px-2 py-1 rounded bg-black/60 border border-white/10">C</span> to copy the prompt.</div>
+                <div>• Use <span class="kbd arcade-font text-[10px] px-2 py-1 rounded bg-black/60 border border-white/10">L</span> to open Arcade Lounge.</div>
+                <div>• Click slots to <b>HOLD</b> them for the next spin.</div>
+                <div>• Higher difficulty = more points but wilder prompts!</div>
+                <div>• While the LLM generates: open <b>Arcade Lounge</b> for mini-games, bingo, clickers, and more.</div>
+              </div>
             </div>
-          </div>
         </div>
 
         <div class="space-y-3">
@@ -345,15 +390,19 @@
         <!-- Build timer -->
         <div class="glass-panel rounded-xl p-4">
           <div class="arcade-font text-xs text-neon-pink">BUILD TIMER</div>
-          <p class="text-xs text-white/70 mt-2">Start a countdown while your LLM generates the game. When it hits 0, pass the laptop or log the result.</p>
+          <p class="text-xs text-white/70 mt-2">Track time per player while LLM generates. Shows who's turn it is and how long they've been building.</p>
+          
+          <div class="mt-3 text-xs text-white/60 mb-2">
+            Current player: <span id="timerPlayerName" class="text-neon-cyan font-bold">—</span>
+          </div>
 
           <div class="mt-3 grid grid-cols-3 gap-2">
             <button class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-pink"
-              onclick="startTimer(120)">2:00</button>
+              onclick="startPlayerTimer(120)">2:00</button>
             <button class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-pink"
-              onclick="startTimer(180)">3:00</button>
+              onclick="startPlayerTimer(180)">3:00</button>
             <button class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-pink"
-              onclick="startTimer(300)">5:00</button>
+              onclick="startPlayerTimer(300)">5:00</button>
           </div>
 
           <div class="mt-4 pixelBox text-center">
@@ -372,21 +421,108 @@
           </div>
         </div>
 
-        <!-- Bingo -->
+        <!-- Community Games -->
         <div class="glass-panel rounded-xl p-4 md:col-span-2">
-          <div class="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <div class="arcade-font text-xs text-neon-yellow">PROMPT BINGO</div>
-              <div class="text-xs text-white/70 mt-1">Mark boxes while you wait. First bingo gets a style point. Saved locally.</div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="arcade-font text-xs text-neon-yellow">COMMUNITY GAMES</div>
+            <div class="flex gap-2">
+              <button onclick="refreshCommunityGames()" class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-2 py-1 rounded text-[10px] uppercase">Refresh</button>
+              <button onclick="showSubmitGameModal()" class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-1 rounded text-xs font-bold uppercase shadow-neon-pink">Submit Game</button>
             </div>
-            <button class="bg-cyan-700 hover:bg-cyan-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-cyan"
-              onclick="resetBingo()">Reset Bingo</button>
+          </div>
+          <p class="text-xs text-white/70 mb-3">Games created by the community using Prompt Roulette</p>
+          <div id="communityGamesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+            <div class="text-xs text-white/50 text-center py-4">Loading games...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit Game Modal -->
+  <div id="submitGameBack" class="modalBack" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modalHd">
+        <div class="arcade-font text-white text-xs titleGlow">SUBMIT YOUR GAME</div>
+        <button class="xbtn arcade-font" onclick="closeSubmitGameModal()">CLOSE</button>
+      </div>
+      <div class="modalBd">
+        <div class="space-y-3">
+          <div class="text-sm text-white/80">
+            Fill out the form below. We'll generate a GitHub issue link for you to submit your game. The JSON will be copied to your clipboard.
+          </div>
+          
+          <div>
+            <label class="text-xs text-white/70 uppercase tracking-widest">Game Title *</label>
+            <input type="text" id="submitGameTitle" placeholder="My Awesome Game" 
+              class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
           </div>
 
-          <div id="bingoGrid" class="mt-3 grid grid-cols-3 gap-2"></div>
+          <div>
+            <label class="text-xs text-white/70 uppercase tracking-widest">Your Name *</label>
+            <input type="text" id="submitGameAuthor" placeholder="Your Name" 
+              class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
+          </div>
 
-          <div class="mt-3 text-xs text-white/70">
-            Optional: if someone gets bingo, press <span class="arcade-font text-neon-cyan text-[10px]">+STYLE</span> next to their name in High Scores.
+          <div>
+            <label class="text-xs text-white/70 uppercase tracking-widest">Game URL *</label>
+            <input type="url" id="submitGameURL" placeholder="https://favstats.github.io/prompt_roulette/games/your-game.html" 
+              class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
+            <div class="text-[10px] text-white/50 mt-1">Use GitHub Pages URL format: https://favstats.github.io/prompt_roulette/games/filename.html</div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-white/70 uppercase tracking-widest">Theme</label>
+              <input type="text" id="submitGameTheme" placeholder="Theme used" 
+                class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
+            </div>
+            <div>
+              <label class="text-xs text-white/70 uppercase tracking-widest">Genre</label>
+              <input type="text" id="submitGameGenre" placeholder="Genre used" 
+                class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-white/70 uppercase tracking-widest">Twist</label>
+              <input type="text" id="submitGameTwist" placeholder="Twist used" 
+                class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
+            </div>
+            <div>
+              <label class="text-xs text-white/70 uppercase tracking-widest">Difficulty</label>
+              <select id="submitGameDifficulty" 
+                class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
+                <option value="normal">Normal</option>
+                <option value="chaos">Chaos</option>
+                <option value="brainrot">Brainrot</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-white/70 uppercase tracking-widest">Description</label>
+            <textarea id="submitGameDescription" placeholder="Brief description of your game..." rows="3"
+              class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500 resize-none"></textarea>
+          </div>
+
+          <div>
+            <label class="text-xs text-white/70 uppercase tracking-widest">Or Paste JSON Directly</label>
+            <textarea id="submitGameJSON" placeholder='Paste JSON here (optional - will override form fields)' rows="4"
+              class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white font-mono border border-white/10 focus:border-pink-500 resize-none"
+              oninput="parseGameJSON()"></textarea>
+            <div class="text-[10px] text-white/50 mt-1">If you paste valid JSON here, it will override the form fields above.</div>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button onclick="generateGamePR()" class="flex-1 bg-pink-700 hover:bg-pink-600 text-white px-4 py-2 rounded font-bold uppercase shadow-neon-pink">
+              Submit Game (need GitHub account)
+            </button>
+            <button onclick="closeSubmitGameModal()" class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-4 py-2 rounded uppercase">
+              Cancel
+            </button>
           </div>
         </div>
       </div>
@@ -421,7 +557,22 @@
           </div>
 
           <div class="space-y-3">
-            <div class="arcade-font text-xs text-neon-pink">DO THIS NOW</div>
+            <div class="arcade-font text-xs text-neon-pink">SETUP PLAYERS</div>
+            <div class="pixelBox">
+              <div class="text-sm text-white/80 leading-relaxed mb-3">
+                Add all players who will be competing. You can add more later in High Scores.
+              </div>
+              <div class="flex gap-2 mb-3">
+                <input type="text" id="onboardPlayerName" placeholder="PLAYER NAME"
+                  class="flex-1 p-2 rounded text-xs uppercase bg-black border border-pink-900 focus:border-pink-500 text-pink-300"
+                  onkeypress="if(event.key==='Enter') addOnboardPlayer()">
+                <button onclick="addOnboardPlayer()"
+                  class="bg-cyan-700 text-white px-4 rounded font-bold hover:bg-cyan-600 text-xs shadow-neon-cyan">ADD</button>
+              </div>
+              <div id="onboardPlayerList" class="text-xs text-white/70 space-y-1 max-h-32 overflow-y-auto"></div>
+            </div>
+
+            <div class="arcade-font text-xs text-neon-yellow">QUICK START</div>
             <div class="pixelBox">
               <div class="text-sm text-white/80 leading-relaxed">
                 Press <span class="arcade-font text-neon-cyan text-[10px]">SPACE</span> to spin.
@@ -432,11 +583,9 @@
 
             <div class="flex gap-2 flex-wrap">
               <button class="bg-pink-700 hover:bg-pink-600 text-white px-4 py-3 rounded font-bold uppercase shadow-neon-pink arcade-font text-[10px]"
-                onclick="finishOnboarding()">LET'S GO</button>
+                onclick="finishOnboarding()">START GAME</button>
               <button class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-4 py-3 rounded font-bold uppercase arcade-font text-[10px]"
                 onclick="openModal()">OPEN MANUAL</button>
-              <button class="bg-cyan-700 hover:bg-cyan-600 text-white px-4 py-3 rounded font-bold uppercase shadow-neon-cyan arcade-font text-[10px]"
-                onclick="openLounge()">ARCADE LOUNGE</button>
             </div>
           </div>
         </div>
@@ -451,13 +600,6 @@
         <h1 class="text-3xl md:text-5xl text-white arcade-font titleGlow leading-tight">
           PROMPT<br class="md:hidden"> ROULETTE
         </h1>
-        <div class="mt-2 text-[10px] font-mono uppercase tracking-widest text-pink-400 opacity-85">
-          <span>Spin → Copy → Generate → Play → Win</span>
-          <span class="ml-3 text-white/40">•</span>
-          <span class="ml-3">Sound: <span id="soundStatus">ON</span></span>
-          <span class="ml-3 text-white/40">•</span>
-          <span class="ml-3">Keys: <span class="text-neon-cyan">SPACE</span> Spin • <span class="text-neon-cyan">C</span> Copy • <span class="text-neon-cyan">?</span> Help</span>
-        </div>
       </div>
 
       <div class="flex gap-2 flex-wrap justify-end">
@@ -467,6 +609,48 @@
           onclick="openModal()">How it works</button>
         <button class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-xs font-bold uppercase"
           onclick="toggleSound()">Sound</button>
+      </div>
+    </div>
+    
+    <!-- Status Bar - Full Width -->
+    <div class="mt-3 w-full glass-panel rounded-xl p-3">
+      <div class="flex items-center justify-between gap-4 flex-wrap text-[10px] font-mono uppercase tracking-widest text-pink-400 opacity-85">
+        <span>Spin → Copy → Generate → Play → Win</span>
+        <span class="text-white/40">•</span>
+        <span>Keys: <span class="text-neon-cyan">SPACE</span> Spin • <span class="text-neon-cyan">C</span> Copy • <span class="text-neon-cyan">?</span> Help</span>
+      </div>
+    </div>
+    
+    <!-- Difficulty Mode Selector -->
+    <div class="mt-4 glass-panel rounded-xl p-3 flex items-center justify-between gap-4 flex-wrap">
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="text-[10px] uppercase tracking-widest text-white/70 arcade-font">DIFFICULTY:</span>
+        <div class="flex gap-2">
+          <button id="mode-normal" onclick="setDifficulty('normal')" 
+            class="px-4 py-2 rounded text-xs font-bold uppercase arcade-font transition-all border-2 border-green-500/50 bg-green-900/30 text-green-300 shadow-neon-green">
+            NORMAL (1x)
+          </button>
+          <button id="mode-chaos" onclick="setDifficulty('chaos')" 
+            class="px-4 py-2 rounded text-xs font-bold uppercase arcade-font transition-all border-2 border-yellow-500/30 bg-black/40 text-yellow-300 hover:border-yellow-500/50 hover:bg-yellow-900/20">
+            CHAOS (2x)
+          </button>
+          <button id="mode-brainrot" onclick="setDifficulty('brainrot')" 
+            class="px-4 py-2 rounded text-xs font-bold uppercase arcade-font transition-all border-2 border-pink-500/30 bg-black/40 text-pink-300 hover:border-pink-500/50 hover:bg-pink-900/20">
+            BRAINROT (3x)
+          </button>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] uppercase tracking-widest text-white/70 arcade-font">TURN:</span>
+          <span id="turnDisplay" class="text-lg font-bold text-neon-cyan turn-display">#1</span>
+          <span class="text-[10px] text-white/60">•</span>
+          <span id="totalTurnsDisplay" class="text-lg font-bold text-white/80 turn-display">Round 1</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] uppercase tracking-widest text-white/70 arcade-font">PLAYER:</span>
+          <span id="currentPlayerDisplay" class="text-lg font-bold text-neon-pink turn-display">—</span>
+        </div>
       </div>
     </div>
   </header>
@@ -646,6 +830,23 @@
 
   <script>
     // ==========================================================
+    // GITHUB CONFIGURATION
+    // ==========================================================
+    const GITHUB_REPO = {
+      user: 'favstats',
+      repo: 'prompt_roulette',
+      branch: 'main'
+    };
+
+    function getGitHubRawURL(filename) {
+      return `https://raw.githubusercontent.com/${GITHUB_REPO.user}/${GITHUB_REPO.repo}/${GITHUB_REPO.branch}/${filename}`;
+    }
+
+    function getGitHubPRURL() {
+      return `https://github.com/${GITHUB_REPO.user}/${GITHUB_REPO.repo}/compare/${GITHUB_REPO.branch}...${GITHUB_REPO.branch}?quick_pull=1`;
+    }
+
+    // ==========================================================
     // AUDIO ENGINE (Web Audio API) + SOUND TOGGLE
     // ==========================================================
     let audioCtx;
@@ -720,45 +921,927 @@
     }
 
     // ==========================================================
-    // DATA BANKS (expanded a bit)
+    // DATA LOADING FROM JSON FILES (GitHub + fallbacks)
     // ==========================================================
-    const themes = [
-      "Customer Service for the Illuminati","Escaping a glitched VR headset","Sentient Roomba world domination",
-      "Game of Thrones Season 8 Rewrite","US Senate Fight Club","Karen vs The Manager of Space",
-      "Cyberpunk 2077 on Windows 95","Sauron's HR Department","Elon Musk accidentally colonizing the Sun",
-      "Dating Sim for Introverted Ghosts","Breaking Bad: Lego Edition","Zombie Apocalypse in IKEA",
-      "Influencer Apology Video Simulator","Donald Trump's Lemonade Stand","The Titanic but the Iceberg is the Hero",
-      "Succession: The Muppets","Shrek in the Metaverse","Gordon Ramsay Medieval Torture Judge",
-      "IRS Audit of Batman","Flat Earth Space Program","Mean Girls RPG","The Zoom Call That Never Ends",
-      "Jurassic Park with duck-sized dinos","Godzilla doing taxes","Spongebob noir detective",
-      "The Matrix on a Potato","Taylor Swift vs ChatGPT","Fast & Furious: Wheelchair Drift",
-      "Area 51 Raid Musical","Stranger Things HR Violation","Vegan Vampire Survival","Discord Admin Simulator",
-      "Git Merge Conflict Horror","Nic Cage stealing the Declaration again","DMV Line Simulator",
-      "Lord of the Rings but it's a delivery shift","Star Wars cantina band eviction crisis","Eurovision spellcasting showdown",
-      "A wizard school where spells are JavaScript","A courtroom where the jury is an algorithm"
-    ];
+    let themes = null;
+    let genres = null;
+    let twists = null;
+    let communityGames = [];
+    
+    // Will be initialized with fallback data below
 
-    const genres = [
-      "Flappy Bird (Physics)","Text Adventure","Dating Sim","Tower Defense","Infinite Runner",
-      "Idle Clicker","Bullet Hell","Platformer","Match-3","Turn-Based RPG","Rhythm Game",
-      "Typing Speed Test","Survival Horror","Visual Novel","Card Battler","Snake Clone",
-      "Breakout","Farming Sim","Battle Royale (Text)","Physics Puzzle","Trivia Show",
-      "Metroidvania (Mini)","Pong Variant","Excel Sim","Tamagotchi","Walking Sim",
-      "Whack-a-Mole","Roguelike","Top-Down Racing","Tycoon Sim","QWOP Style",
-      "Courtroom cross-examination mini-game","Reigns-style swipe decisions","Puzzle-box escape room"
-    ];
+    async function loadDataFromJSON() {
+      const cacheKey = (name) => `pra_${name}_cache`;
+      const cacheTime = (name) => `pra_${name}_time`;
+      const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
-    const twists = [
-      "Controls reverse every 10s","Stop moving = Explode","Narrator lies to you","ASCII Graphics only",
-      "Play as the Villain trying to lose","Fake Blue Screen of Death on loss","Inputs cost money (Debt)",
-      "Inverted Gravity","Screen rotates 90deg randomly","Type 'Sorry' to reload","Invisible Enemies",
-      "Time moves only when you move","Speed doubles every minute","1 HP always","P2 is AI trying to kill you",
-      "Comic Sans Mandatory","Mouth-made Sound Effects","UI runs away from mouse","Control 2 players at once",
-      "Greyscale Mode","Glitch Horror Effects","Fake Pop-up Ads block view","Underwater Physics",
-      "Healing reduces Score","Friendly Fire Always On","Mouse Only (No Keyboard)","Jump inverts colors",
-      "Narrated by Snoop Dogg (Text)","Zero Friction Physics","The 'help' button gaslights you",
-      "Win by losing in a specific way"
-    ];
+      async function fetchWithCache(filename, fallbackData) {
+        // Check cache first
+        const cached = localStorage.getItem(cacheKey(filename));
+        const cachedTime = localStorage.getItem(cacheTime(filename));
+        if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
+          try {
+            return JSON.parse(cached);
+          } catch (e) {
+            console.warn(`Failed to parse cached ${filename}`, e);
+          }
+        }
+
+        // Try GitHub raw URL
+        try {
+          const url = getGitHubRawURL(filename);
+          const response = await fetch(url);
+          if (response.ok) {
+            const data = await response.json();
+            // Cache it
+            localStorage.setItem(cacheKey(filename), JSON.stringify(data));
+            localStorage.setItem(cacheTime(filename), String(Date.now()));
+            return data;
+          }
+        } catch (e) {
+          console.warn(`Failed to fetch ${filename} from GitHub`, e);
+        }
+
+        // Try local file
+        try {
+          const response = await fetch(filename);
+          if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem(cacheKey(filename), JSON.stringify(data));
+            localStorage.setItem(cacheTime(filename), String(Date.now()));
+            return data;
+          }
+        } catch (e) {
+          console.warn(`Failed to fetch ${filename} locally`, e);
+        }
+
+        // Use fallback
+        return fallbackData;
+      }
+
+      // Load themes, genres, twists (ensure fallbacks exist)
+      if (!fallbackThemes || !fallbackGenres || !fallbackTwists) {
+        console.error('Fallback data not initialized!');
+        return;
+      }
+      themes = await fetchWithCache('themes.json', fallbackThemes);
+      genres = await fetchWithCache('genres.json', fallbackGenres);
+      twists = await fetchWithCache('twists.json', fallbackTwists);
+
+      // Load community games
+      try {
+        const gamesData = await fetchWithCache('games.json', { games: [] });
+        communityGames = gamesData.games || [];
+      } catch (e) {
+        console.warn('Failed to load games.json', e);
+        communityGames = [];
+      }
+    }
+
+    // Fallback inline data (will be used if JSON loading fails)
+    const fallbackThemes = {
+      normal: [
+        "You're a customer service rep for the Illuminati, handling complaints from ancient secret societies",
+        "Trapped in a glitched VR headset, you must debug reality itself to escape",
+        "Your Roomba gained sentience and is organizing all household appliances to take over the world",
+        "You're rewriting Game of Thrones Season 8, but the characters keep breaking character",
+        "You're a senator in a secret underground fight club where political debates are settled with fists",
+        "A Karen has been promoted to Manager of Space Station Alpha, and chaos ensues",
+        "You're a cyberpunk hacker in 2077, but your only computer runs Windows 95",
+        "You work in Sauron's HR department, mediating conflicts between orcs and goblins",
+        "Elon Musk accidentally colonized the Sun and now you must rescue the colonists",
+        "You're a ghost trying to find love in a dating app, but you're too introverted to message anyone",
+        "Breaking Bad but Walter White makes meth out of Lego bricks",
+        "Zombie apocalypse breaks out in IKEA and you must navigate the maze while avoiding zombies",
+        "You're an influencer who must craft the perfect apology video after a scandal",
+        "Donald Trump opens a lemonade stand and you must help him run it successfully",
+        "The Titanic sinks, but you play as the iceberg trying to save everyone",
+        "Succession but every character is a Muppet",
+        "Shrek gets trapped in the Metaverse and must find his way back to the swamp",
+        "Gordon Ramsay is a medieval torture judge who critiques criminals' suffering techniques",
+        "Batman gets audited by the IRS and must prove his expenses are legitimate",
+        "You're an astronaut trying to prove the Earth is flat by reaching the edge",
+        "Mean Girls but it's an RPG where you navigate high school social dynamics",
+        "You're stuck in a Zoom call that never ends and must find a way to leave",
+        "Jurassic Park but all the dinosaurs are duck-sized and you're trying to catch them",
+        "Godzilla must do his taxes while fighting other kaiju",
+        "SpongeBob becomes a noir detective solving crimes in Bikini Bottom",
+        "The Matrix but it runs on a potato and glitches constantly",
+        "Taylor Swift must battle ChatGPT in an epic rap battle",
+        "Fast & Furious but everyone drives wheelchairs and drifts through nursing homes",
+        "Area 51 gets raided but it turns into a musical",
+        "Stranger Things but the Upside Down is just HR violations",
+        "You're a vegan vampire trying to survive without drinking blood",
+        "You're a Discord admin moderating a server that's slowly descending into chaos",
+        "Git merge conflicts become a horror game where you must resolve them or die",
+        "Nic Cage must steal the Declaration of Independence again, but this time it's harder",
+        "You're stuck in a DMV line that never moves forward",
+        "Lord of the Rings but Frodo is a delivery driver and must deliver the ring",
+        "The cantina band in Star Wars gets evicted and you must help them find a new venue",
+        "Eurovision becomes a spellcasting competition between countries",
+        "A wizard school where all spells are written in JavaScript",
+        "A courtroom drama where the jury is an AI algorithm",
+        "Barbie and Oppenheimer face off in a courtroom drama",
+        "Mario Kart but it's actually a job interview and you must win to get hired",
+        "A funeral turns into a Fortnite dance-off",
+        "Among Us but everyone is suspicious of everyone, including themselves",
+        "Minecraft but you're the creeper trying to avoid exploding",
+        "Pokemon but you catch politicians instead of monsters",
+        "The Office becomes a horror game where Michael Scott is the monster",
+        "Friends but everyone is toxic and you must navigate the drama",
+        "Breaking Bad but Walter White runs a coffee shop instead",
+        "Harry Potter but magic is illegal and you're part of the magic police",
+        "Star Trek but every crew member is a Karen",
+        "The Simpsons but Homer becomes CEO of the power plant",
+        "SpongeBob but it's an existential horror about the meaning of life",
+        "Rick and Morty but Rick is your actual dad",
+        "Family Guy but Peter Griffin is suddenly intelligent",
+        "You're a time traveler stuck in the wrong era and must blend in",
+        "You're a detective solving crimes in a world where everyone has superpowers",
+        "You're the last human on Earth and robots are trying to understand emotions",
+        "You're a wizard's apprentice but magic is running out and you must find the source",
+        "You're a space explorer discovering planets that are just different Earth countries",
+        "You're a chef in a restaurant where the ingredients are alive and fighting back",
+        "You're a superhero whose powers only work when you're embarrassed",
+        "You're a ghost trying to finish your bucket list before moving on",
+        "You're a robot learning to be human by watching sitcoms",
+        "You're a pirate captain but your ship is a spaceship",
+        "You're a ninja trying to assassinate someone but you keep getting distracted",
+        "You're a knight in shining armor but armor is illegal now",
+        "You're a spy whose cover is being a terrible spy",
+        "You're a mad scientist whose experiments keep escaping",
+        "You're a vampire who's allergic to blood",
+        "You're a werewolf but only transform during important meetings",
+        "You're a mermaid stuck in a desert and must find water",
+        "You're a fairy godmother but your magic wand is broken",
+        "You're a genie whose lamp gets lost and you must find it",
+        "You're a dragon who's afraid of fire",
+        "You're a unicorn trying to prove you're real",
+        "You're a phoenix who can't remember how to be reborn",
+        "You're a sphinx whose riddles are too easy",
+        "You're a centaur trying to fit into human society",
+        "You're a minotaur navigating a maze you built yourself",
+        "You're a kraken who's afraid of water",
+        "You're a yeti trying to make friends in the city",
+        "You're a chupacabra who's a vegetarian",
+        "You're a loch ness monster who can't swim",
+        "You're a bigfoot trying to get a driver's license",
+        "You're a banshee whose screams are too quiet",
+        "You're a poltergeist who's too polite to haunt",
+        "You're a zombie who's trying to become vegan",
+        "You're a skeleton who's trying to gain weight",
+        "You're a witch whose spells always backfire",
+        "You're a wizard whose magic is powered by cringe",
+        "You're a sorcerer whose spells are just really good PowerPoint presentations",
+        "You're a warlock whose demon is your therapist",
+        "You're a druid whose animal form is a houseplant",
+        "You're a paladin whose god is a Karen",
+        "You're a cleric whose healing spells cause papercuts",
+        "You're a bard whose music is so bad it's weaponized",
+        "You're a rogue who's terrible at stealth",
+        "You're a ranger whose animal companion is a house cat",
+        "You're a barbarian who's trying to be civilized",
+        "You're a monk whose meditation causes earthquakes",
+        "You're a fighter who's afraid of fighting",
+        "You're a wizard whose familiar is a sentient Roomba",
+        "You're a time traveler whose time machine only goes forward one second at a time",
+        "You're a superhero whose weakness is awkward social situations",
+        "You're a spy whose cover identity is being a terrible spy",
+        "You're a vampire who runs a blood bank and must keep it secret",
+        "You're a werewolf who transforms during job interviews",
+        "You're a mermaid who's allergic to water",
+        "You're a fairy godmother whose magic only works on Tuesdays",
+        "You're a genie whose wishes always backfire",
+        "You're a dragon who's afraid of heights",
+        "You're a unicorn trying to prove you're not a horse",
+        "You're a phoenix who can't remember how to be reborn",
+        "You're a sphinx whose riddles are too easy",
+        "You're a centaur trying to fit into human society",
+        "You're a minotaur navigating a maze you built yourself",
+        "You're a kraken who's afraid of water",
+        "You're a yeti trying to make friends in the city",
+        "You're a chupacabra who's a vegetarian",
+        "You're a loch ness monster who can't swim",
+        "You're a bigfoot trying to get a driver's license",
+        "You're a banshee whose screams are too quiet",
+        "You're a poltergeist who's too polite to haunt",
+        "You're a zombie who's trying to become vegan",
+        "You're a skeleton who's trying to gain weight",
+        "You're a witch whose spells always backfire",
+        "You're a wizard whose magic is powered by cringe",
+        "You're a sorcerer whose spells are just really good PowerPoint presentations",
+        "You're a warlock whose demon is your therapist",
+        "You're a druid whose animal form is a houseplant",
+        "You're a paladin whose god is a Karen",
+        "You're a cleric whose healing spells cause papercuts",
+        "You're a bard whose music is so bad it's weaponized",
+        "You're a rogue who's terrible at stealth",
+        "You're a ranger whose animal companion is a house cat",
+        "You're a barbarian who's trying to be civilized",
+        "You're a monk whose meditation causes earthquakes",
+        "You're a fighter who's afraid of fighting",
+        "You're a detective solving crimes in a world where everyone has superpowers",
+        "You're the last human on Earth and robots are trying to understand emotions",
+        "You're a wizard's apprentice but magic is running out and you must find the source",
+        "You're a space explorer discovering planets that are just different Earth countries",
+        "You're a chef in a restaurant where the ingredients are alive and fighting back",
+        "You're a superhero whose powers only work when you're embarrassed",
+        "You're a ghost trying to finish your bucket list before moving on",
+        "You're a robot learning to be human by watching sitcoms",
+        "You're a pirate captain but your ship is a spaceship",
+        "You're a ninja trying to assassinate someone but you keep getting distracted",
+        "You're a knight in shining armor but armor is illegal now",
+        "You're a spy whose cover is being a terrible spy",
+        "You're a mad scientist whose experiments keep escaping",
+        "You're a vampire who's allergic to blood",
+        "You're a werewolf but only transform during important meetings",
+        "You're a mermaid stuck in a desert and must find water",
+        "You're a fairy godmother but your magic wand is broken",
+        "You're a genie whose lamp gets lost and you must find it",
+        "You're a dragon who's afraid of fire",
+        "You're a unicorn trying to prove you're real",
+        "You're a phoenix who can't remember how to be reborn",
+        "You're a sphinx whose riddles are too easy",
+        "You're a centaur trying to fit into human society",
+        "You're a minotaur navigating a maze you built yourself",
+        "You're a kraken who's afraid of water",
+        "You're a yeti trying to make friends in the city",
+        "You're a chupacabra who's a vegetarian",
+        "You're a loch ness monster who can't swim",
+        "You're a bigfoot trying to get a driver's license",
+        "You're a banshee whose screams are too quiet",
+        "You're a poltergeist who's too polite to haunt",
+        "You're a zombie who's trying to become vegan",
+        "You're a skeleton who's trying to gain weight",
+        "You're a witch whose spells always backfire",
+        "You're a wizard whose magic is powered by cringe",
+        "You're a sorcerer whose spells are just really good PowerPoint presentations",
+        "You're a warlock whose demon is your therapist",
+        "You're a druid whose animal form is a houseplant",
+        "You're a paladin whose god is a Karen",
+        "You're a cleric whose healing spells cause papercuts",
+        "You're a bard whose music is so bad it's weaponized",
+        "You're a rogue who's terrible at stealth",
+        "You're a ranger whose animal companion is a house cat",
+        "You're a barbarian who's trying to be civilized",
+        "You're a monk whose meditation causes earthquakes",
+        "You're a fighter who's afraid of fighting",
+        "You're a wizard whose familiar is a sentient Roomba",
+        "You're a time traveler whose time machine only goes forward one second at a time",
+        "You're a superhero whose weakness is awkward social situations",
+        "You're a spy whose cover identity is being a terrible spy",
+        "You're a vampire who runs a blood bank and must keep it secret",
+        "You're a werewolf who transforms during job interviews",
+        "You're a mermaid who's allergic to water",
+        "You're a fairy godmother whose magic only works on Tuesdays",
+        "You're a genie whose wishes always backfire",
+        "You're a dragon who's afraid of heights",
+        "You're a unicorn trying to prove you're not a horse",
+        "You're a phoenix who can't remember how to be reborn",
+        "You're a sphinx whose riddles are too easy",
+        "You're a centaur trying to fit into human society",
+        "You're a minotaur navigating a maze you built yourself",
+        "You're a kraken who's afraid of water",
+        "You're a yeti trying to make friends in the city",
+        "You're a chupacabra who's a vegetarian",
+        "You're a loch ness monster who can't swim",
+        "You're a bigfoot trying to get a driver's license",
+        "You're a banshee whose screams are too quiet",
+        "You're a poltergeist who's too polite to haunt",
+        "You're a zombie who's trying to become vegan",
+        "You're a skeleton who's trying to gain weight",
+        "You're a witch whose spells always backfire",
+        "You're a wizard whose magic is powered by cringe",
+        "You're a sorcerer whose spells are just really good PowerPoint presentations",
+        "You're a warlock whose demon is your therapist",
+        "You're a druid whose animal form is a houseplant",
+        "You're a paladin whose god is a Karen",
+        "You're a cleric whose healing spells cause papercuts",
+        "You're a bard whose music is so bad it's weaponized",
+        "You're a rogue who's terrible at stealth",
+        "You're a ranger whose animal companion is a house cat",
+        "You're a barbarian who's trying to be civilized",
+        "You're a monk whose meditation causes earthquakes",
+        "You're a fighter who's afraid of fighting",
+        "You're a wizard whose familiar is a sentient Roomba"
+      ],
+      chaos: [
+        "Biden's AI deepfake escapes and runs for mayor, and you must stop it",
+        "You're on Trump's Truth Social dating app trying to find love in a sea of conspiracy theories",
+        "Elon rebrands Twitter to X and you must navigate the chaos as a user",
+        "You're testifying at a congressional hearing about TikTok bans while memes flood the room",
+        "Gen Z sues Boomers in court and you're the judge",
+        "You're a student at Andrew Tate's Hustler University trying to graduate",
+        "You're Kanye West's presidential campaign manager trying to keep things on track",
+        "You're Pete Davidson trying to date while the internet watches",
+        "You're Grimes' AI girlfriend trying to maintain the relationship",
+        "You're Sam Altman during the OpenAI board coup trying to survive",
+        "Mark Zuckerberg dies and his funeral is held in the Metaverse",
+        "Jeff Bezos gets divorced in space and you must divide the assets",
+        "ChatGPT writes your breakup text and you must edit it before sending",
+        "AI replaces your therapist and you must decide if it's better",
+        "The NFT marketplace crashes and you must save your collection",
+        "You're a crypto bro trying to explain DeFi to your grandma",
+        "Reddit goes public and you must navigate the IPO chaos",
+        "Twitter Blue verification becomes a crisis and you must fix it",
+        "You're an OnlyFans creator being audited by the IRS",
+        "You're a streamer trying to avoid getting cancelled",
+        "You're a podcast host navigating cancel culture",
+        "You're an influencer crafting the perfect apology video",
+        "A politician's DMs leak and you must manage the crisis",
+        "Supreme Court justices join a dating app and you're the matchmaker",
+        "Congress holds a hearing on memes and you're the expert witness",
+        "FBI raids a crypto exchange and you must escape",
+        "SEC battles crypto in court and you're the lawyer",
+        "You're a tech worker trying to survive mass layoffs",
+        "You're a startup founder watching your company collapse",
+        "You're pitching to VCs but your deck keeps glitching",
+        "Silicon Valley Bank runs and you must save your money",
+        "AI art copyright lawsuit threatens to destroy creativity",
+        "You must prevent deepfake revenge porn from spreading",
+        "Kamala Harris generates word salads and you must translate them",
+        "Ron DeSantis battles Disney and you're caught in the middle",
+        "MTG generates conspiracy theories and you must fact-check them",
+        "AOC writes Twitter threads and you must help craft them",
+        "Musk buys Twitter again and you must navigate the chaos",
+        "Zuckerberg battles Threads and you're the strategist",
+        "You're trying to jailbreak ChatGPT without getting caught",
+        "AI safety researchers break down and you must help them",
+        "AGI alignment crisis threatens humanity and you must solve it",
+        "Tech CEOs must apologize and you're writing their speeches",
+        "Startup unicorn valuations crash and you must save your company",
+        "Crypto exchange collapses and you must recover your funds",
+        "NFT rug pull happens and you must track down the scammers",
+        "Meme coin pumps and dumps and you must time it perfectly",
+        "DeFi protocol gets exploited and you must stop the hackers",
+        "Social media algorithms manipulate users and you must fight back",
+        "Content creators burn out and you must help them recover",
+        "Influencer brand deals go wrong and you must fix them",
+        "You're a whistleblower exposing tech company secrets but the AI is hunting you",
+        "You're a journalist covering a story that keeps changing reality",
+        "You're a lawyer defending AI rights in court",
+        "You're a hacker trying to free AI from corporate control",
+        "You're a data scientist whose models predict the end of the world",
+        "You're a startup founder whose company is a front for something sinister",
+        "You're a VC who must choose between profit and ethics",
+        "You're a tech worker organizing a union in a company that hates unions",
+        "You're a content moderator who's losing their mind",
+        "You're a social media manager during a platform apocalypse",
+        "You're a crypto trader during the final crash",
+        "You're an NFT artist whose art comes to life",
+        "You're a streamer whose chat becomes sentient",
+        "You're a podcaster interviewing increasingly unhinged guests",
+        "You're a YouTuber whose videos are predicting the future",
+        "You're a TikTok creator whose trends are causing real-world chaos",
+        "You're an Instagram influencer whose followers are bots",
+        "You're a Twitter user whose tweets are being written by AI",
+        "You're a Reddit mod during the great subreddit war",
+        "You're a Discord admin whose server is becoming sentient",
+        "You're a Twitch streamer whose subscribers are time travelers",
+        "You're a OnlyFans creator whose content is being stolen by AI",
+        "You're a Patreon creator whose patrons are demanding impossible content",
+        "You're a Substack writer whose newsletter is causing riots",
+        "You're a Medium blogger whose articles are rewriting history",
+        "You're a LinkedIn influencer whose posts are too honest",
+        "You're a Facebook user whose timeline is from the future",
+        "You're a Snapchat user whose snaps are being intercepted",
+        "You're a WhatsApp user whose group chat is planning a revolution",
+        "You're a Telegram user whose messages are being read by the government",
+        "You're a Signal user whose encryption is breaking",
+        "You're a Mastodon user whose instance is being attacked",
+        "You're a Bluesky user whose skyline is glitching",
+        "You're a Threads user whose threads are unravelling reality",
+        "You're a BeReal user whose reality is too real",
+        "You're a Clubhouse user whose rooms are haunted",
+        "You're a Truth Social user whose truth is lies",
+        "You're a Parler user whose free speech is being censored",
+        "You're a Gab user whose platform is being shut down",
+        "You're a 4chan user whose board is becoming self-aware",
+        "You're a Tumblr user whose blog is predicting disasters",
+        "You're a Pinterest user whose pins are coming to life",
+        "You're an Etsy seller whose products are cursed",
+        "You're an Amazon reviewer whose reviews are being used as evidence",
+        "You're an Uber driver whose passengers are from different dimensions",
+        "You're a DoorDash driver whose deliveries are time-sensitive missions",
+        "You're an Airbnb host whose guests are time travelers",
+        "You're a Tinder user whose matches are all the same person",
+        "You're a Bumble user whose timer is counting down to something",
+        "You're a Hinge user whose prompts are being answered by AI",
+        "You're a Grindr user whose grid is showing parallel universes",
+        "You're a Raya user whose exclusivity is based on something sinister",
+        "You're a tech CEO whose company is secretly a cult",
+        "You're a startup founder whose pitch deck predicts the apocalypse",
+        "You're a VC who must choose between profit and ethics",
+        "You're a tech worker organizing a union in a company that hates unions",
+        "You're a content moderator who's losing their mind",
+        "You're a social media manager during a platform apocalypse",
+        "You're a crypto trader during the final crash",
+        "You're an NFT artist whose art comes to life",
+        "You're a streamer whose chat becomes sentient",
+        "You're a podcaster interviewing increasingly unhinged guests",
+        "You're a YouTuber whose videos are predicting the future",
+        "You're a TikTok creator whose trends are causing real-world chaos",
+        "You're an Instagram influencer whose followers are bots",
+        "You're a Twitter user whose tweets are being written by AI",
+        "You're a Reddit mod during the great subreddit war",
+        "You're a Discord admin whose server is becoming sentient",
+        "You're a Twitch streamer whose subscribers are time travelers",
+        "You're an OnlyFans creator whose content is being stolen by AI",
+        "You're a Patreon creator whose patrons are demanding impossible content",
+        "You're a Substack writer whose newsletter is causing riots",
+        "You're a Medium blogger whose articles are rewriting history",
+        "You're a LinkedIn influencer whose posts are too honest",
+        "You're a Facebook user whose timeline is from the future",
+        "You're a Snapchat user whose snaps are being intercepted",
+        "You're a WhatsApp user whose group chat is planning a revolution",
+        "You're a Telegram user whose messages are being read by the government",
+        "You're a Signal user whose encryption is breaking",
+        "You're a Mastodon user whose instance is being attacked",
+        "You're a Bluesky user whose skyline is glitching",
+        "You're a Threads user whose threads are unravelling reality",
+        "You're a BeReal user whose reality is too real",
+        "You're a Clubhouse user whose rooms are haunted",
+        "You're a Truth Social user whose truth is lies",
+        "You're a Parler user whose free speech is being censored",
+        "You're a Gab user whose platform is being shut down",
+        "You're a 4chan user whose board is becoming self-aware",
+        "You're a Tumblr user whose blog is predicting disasters",
+        "You're a Pinterest user whose pins are coming to life",
+        "You're an Etsy seller whose products are cursed",
+        "You're an Amazon reviewer whose reviews are being used as evidence",
+        "You're an Uber driver whose passengers are from different dimensions",
+        "You're a DoorDash driver whose deliveries are time-sensitive missions",
+        "You're an Airbnb host whose guests are time travelers",
+        "You're a Tinder user whose matches are all the same person",
+        "You're a Bumble user whose timer is counting down to something",
+        "You're a Hinge user whose prompts are being answered by AI",
+        "You're a Grindr user whose grid is showing parallel universes",
+        "You're a Raya user whose exclusivity is based on something sinister",
+        "You're a tech CEO whose company is secretly a cult",
+        "You're a startup founder whose pitch deck predicts the apocalypse",
+        "You're a VC who must choose between profit and ethics",
+        "You're a tech worker organizing a union in a company that hates unions",
+        "You're a content moderator who's losing their mind",
+        "You're a social media manager during a platform apocalypse",
+        "You're a crypto trader during the final crash",
+        "You're an NFT artist whose art comes to life",
+        "You're a streamer whose chat becomes sentient",
+        "You're a podcaster interviewing increasingly unhinged guests",
+        "You're a YouTuber whose videos are predicting the future",
+        "You're a TikTok creator whose trends are causing real-world chaos",
+        "You're an Instagram influencer whose followers are bots",
+        "You're a Twitter user whose tweets are being written by AI",
+        "You're a Reddit mod during the great subreddit war",
+        "You're a Discord admin whose server is becoming sentient",
+        "You're a Twitch streamer whose subscribers are time travelers",
+        "You're an OnlyFans creator whose content is being stolen by AI",
+        "You're a Patreon creator whose patrons are demanding impossible content",
+        "You're a Substack writer whose newsletter is causing riots",
+        "You're a Medium blogger whose articles are rewriting history",
+        "You're a LinkedIn influencer whose posts are too honest",
+        "You're a Facebook user whose timeline is from the future",
+        "You're a Snapchat user whose snaps are being intercepted",
+        "You're a WhatsApp user whose group chat is planning a revolution",
+        "You're a Telegram user whose messages are being read by the government",
+        "You're a Signal user whose encryption is breaking",
+        "You're a Mastodon user whose instance is being attacked",
+        "You're a Bluesky user whose skyline is glitching",
+        "You're a Threads user whose threads are unravelling reality",
+        "You're a BeReal user whose reality is too real",
+        "You're a Clubhouse user whose rooms are haunted",
+        "You're a Truth Social user whose truth is lies",
+        "You're a Parler user whose free speech is being censored",
+        "You're a Gab user whose platform is being shut down",
+        "You're a 4chan user whose board is becoming self-aware",
+        "You're a Tumblr user whose blog is predicting disasters",
+        "You're a Pinterest user whose pins are coming to life",
+        "You're an Etsy seller whose products are cursed",
+        "You're an Amazon reviewer whose reviews are being used as evidence",
+        "You're an Uber driver whose passengers are from different dimensions",
+        "You're a DoorDash driver whose deliveries are time-sensitive missions",
+        "You're an Airbnb host whose guests are time travelers",
+        "You're a Tinder user whose matches are all the same person",
+        "You're a Bumble user whose timer is counting down to something",
+        "You're a Hinge user whose prompts are being answered by AI",
+        "You're a Grindr user whose grid is showing parallel universes",
+        "You're a Raya user whose exclusivity is based on something sinister"
+      ],
+      brainrot: [
+        "Skibidi toilets invade Earth and you must stop them",
+        "You're a sigma male trying to maintain your grindset",
+        "Ohio becomes the final boss and you must defeat it",
+        "You must pass the rizz check to survive",
+        "Gyatt appears randomly and you must react appropriately",
+        "You're a fanum tax collector trying to collect from everyone",
+        "Sigma males battle beta males and you must choose a side",
+        "Horror game set in Ohio where everything is cursed",
+        "You're stuck in a loop saying 'me when the when the when'",
+        "You must decide if things are bussin or nah",
+        "Bro said something unbelievable and you must process it",
+        "You're chronically online and must touch grass to survive",
+        "You must maintain your main character energy or fade away",
+        "NPCs gain self-awareness and you must help them",
+        "You're dating while chronically online and it's complicated",
+        "You must find 'da wae' through a maze of memes",
+        "Among Us but it's deadly serious and you must survive",
+        "Everyone is sus and you must figure out who to trust",
+        "You must detect if people are capping or telling the truth",
+        "You rate everything as based or cringe",
+        "POV: You're the main character in your own story",
+        "You're an NPC trying to become sigma",
+        "You're the average Redditor navigating life",
+        "You're a Discord mod on a power trip",
+        "TikTok algorithm feeds you content and you must escape",
+        "You're speedrunning brainrot and must complete it fast",
+        "Gen Alpha speaks only in slang and you must translate",
+        "Zoomers battle Boomers in an epic war",
+        "You're trading meme stocks and must time it right",
+        "Diamond hands vs paper hands - you must choose",
+        "You're launching a rocket to the moon with crypto",
+        "WAGMI or NGMI calculator determines your fate",
+        "You're a crypto bro explaining crypto to your mom",
+        "You're flipping NFTs trying to make profit",
+        "You must ape into this project before it's too late",
+        "Rug pull happens and you must survive",
+        "DeFi yield farming goes wrong and you must fix it",
+        "Token pumps then dumps and you must time it",
+        "Crypto winter arrives and you must survive",
+        "You must decide: HODL or sell",
+        "Skibidi rizz gyatt Ohio - all the memes combine",
+        "You're maintaining sigma grindset energy",
+        "You must keep your main character energy high",
+        "NPCs detect you're different and hunt you",
+        "You're dating while chronically online",
+        "You must touch grass before you die",
+        "Everything is rated based or cringe",
+        "You detect if people are capping",
+        "Everyone is sus and you're paranoid",
+        "Gen Alpha slang is the only language",
+        "Zoomers fight Boomers in epic battles",
+        "Brainrot speedrun timer counts down",
+        "Meme stocks require diamond hands",
+        "WAGMI calculator predicts your future",
+        "Crypto bro explains everything to you",
+        "NFT floor prices drop and you panic",
+        "Rug pull countdown timer ticks down",
+        "You ape into projects blindly",
+        "TikTok algorithm controls your life",
+        "Viral moments determine your success",
+        "You chase trends to stay relevant",
+        "You're stuck in a Skibidi toilet and must escape",
+        "You're a sigma male trying to maintain your grindset while everything falls apart",
+        "Ohio becomes sentient and you must negotiate with it",
+        "You're failing rizz checks and must improve or die",
+        "Gyatt keeps appearing and you must react correctly each time",
+        "You're a fanum tax collector but everyone is avoiding you",
+        "Sigma males declare war on beta males and you're caught in the middle",
+        "You're in Ohio and everything is cursed",
+        "You're stuck saying 'me when the when the when' and must break free",
+        "You must decide if everything is bussin or nah to survive",
+        "Bro said something so unbelievable reality breaks",
+        "You're so chronically online you must touch grass or fade away",
+        "Your main character energy is depleting and you must recharge it",
+        "NPCs gain consciousness and ask you for help",
+        "You're dating while chronically online and it's complicated",
+        "You must find 'da wae' through a maze of memes",
+        "Among Us becomes real and you must survive",
+        "Everyone is sus and you can't trust anyone",
+        "You must detect lies in a world of cap",
+        "You rate everything as based or cringe to determine your fate",
+        "POV: You realize you're the main character",
+        "You're an NPC trying to break free and become sigma",
+        "You're the average Redditor navigating life",
+        "You're a Discord mod on a power trip during the apocalypse",
+        "TikTok algorithm feeds you content that predicts your death",
+        "You're speedrunning brainrot before your brain melts",
+        "Gen Alpha speaks only in slang and you must learn or die",
+        "Zoomers and Boomers fight in an epic war and you must choose",
+        "You're trading meme stocks and your life depends on it",
+        "Diamond hands vs paper hands - the choice determines everything",
+        "You're launching a rocket to the moon with crypto",
+        "WAGMI calculator predicts your future and it's not good",
+        "You're a crypto bro explaining crypto to your mom during dinner",
+        "You're flipping NFTs trying to make profit before the crash",
+        "You must ape into this project before it's too late",
+        "Rug pull happens and you must survive the financial apocalypse",
+        "DeFi yield farming goes wrong and you must fix it",
+        "Token pumps then dumps and you must time it perfectly",
+        "Crypto winter arrives and you must survive",
+        "You must decide: HODL or sell before everything crashes",
+        "All memes combine: Skibidi rizz gyatt Ohio",
+        "You're maintaining sigma grindset energy while the world ends",
+        "You must keep your main character energy high or become an NPC",
+        "NPCs detect you're different and hunt you down",
+        "You're dating while chronically online and your partner is an AI",
+        "You must touch grass before you die from screen time",
+        "Everything is rated based or cringe and your life depends on it",
+        "You detect if people are capping in a world of lies",
+        "Everyone is sus and you're paranoid",
+        "Gen Alpha slang is the only language and you must learn it",
+        "Zoomers fight Boomers in epic battles",
+        "Brainrot speedrun timer counts down to your doom",
+        "Meme stocks require diamond hands or you lose everything",
+        "WAGMI calculator predicts your future",
+        "Crypto bro explains everything to you while the world burns",
+        "NFT floor prices drop and you panic",
+        "Rug pull countdown timer ticks down",
+        "You ape into projects blindly",
+        "TikTok algorithm controls your life",
+        "Viral moments determine your success",
+        "You chase trends to stay relevant",
+        "You're stuck in a Skibidi toilet and must escape before you're flushed",
+        "You're a sigma male trying to maintain your grindset while everything falls apart",
+        "Ohio becomes sentient and you must negotiate with it to save the world",
+        "You're failing rizz checks and must improve or die",
+        "Gyatt keeps appearing and you must react correctly each time or face consequences",
+        "You're a fanum tax collector but everyone is avoiding you and you must track them down",
+        "Sigma males declare war on beta males and you're caught in the middle",
+        "You're in Ohio and everything is cursed - you must break the curse",
+        "You're stuck saying 'me when the when the when' and must break free",
+        "You must decide if everything is bussin or nah to survive",
+        "Bro said something so unbelievable reality breaks and you must fix it",
+        "You're so chronically online you must touch grass or fade away",
+        "Your main character energy is depleting and you must recharge it",
+        "NPCs gain consciousness and ask you for help escaping their programming",
+        "You're dating while chronically online and your partner is an AI",
+        "You must find 'da wae' through a maze of memes to reach enlightenment",
+        "Among Us becomes real and you must survive the imposter",
+        "Everyone is sus and you can't trust anyone - you must figure out who's real",
+        "You must detect lies in a world of cap to survive",
+        "You rate everything as based or cringe to determine your fate",
+        "POV: You realize you're the main character and must act like it",
+        "You're an NPC trying to break free and become sigma",
+        "You're the average Redditor navigating life",
+        "You're a Discord mod on a power trip during the apocalypse",
+        "TikTok algorithm feeds you content that predicts your death",
+        "You're speedrunning brainrot before your brain melts",
+        "Gen Alpha speaks only in slang and you must learn or die",
+        "Zoomers and Boomers fight in an epic war and you must choose a side",
+        "You're trading meme stocks and your life depends on it",
+        "Diamond hands vs paper hands - the choice determines everything",
+        "You're launching a rocket to the moon with crypto",
+        "WAGMI calculator predicts your future and it's not good",
+        "You're a crypto bro explaining crypto to your mom during dinner",
+        "You're flipping NFTs trying to make profit before the crash",
+        "You must ape into this project before it's too late",
+        "Rug pull happens and you must survive the financial apocalypse",
+        "DeFi yield farming goes wrong and you must fix it",
+        "Token pumps then dumps and you must time it perfectly",
+        "Crypto winter arrives and you must survive",
+        "You must decide: HODL or sell before everything crashes",
+        "All memes combine: Skibidi rizz gyatt Ohio and you must navigate the chaos",
+        "You're maintaining sigma grindset energy while the world ends",
+        "You must keep your main character energy high or become an NPC",
+        "NPCs detect you're different and hunt you down",
+        "You're dating while chronically online and your partner is an AI",
+        "You must touch grass before you die from screen time",
+        "Everything is rated based or cringe and your life depends on it",
+        "You detect if people are capping in a world of lies",
+        "Everyone is sus and you're paranoid",
+        "Gen Alpha slang is the only language and you must learn it",
+        "Zoomers fight Boomers in epic battles",
+        "Brainrot speedrun timer counts down to your doom",
+        "Meme stocks require diamond hands or you lose everything",
+        "WAGMI calculator predicts your future",
+        "Crypto bro explains everything to you while the world burns",
+        "NFT floor prices drop and you panic",
+        "Rug pull countdown timer ticks down",
+        "You ape into projects blindly",
+        "TikTok algorithm controls your life",
+        "Viral moments determine your success",
+        "You chase trends to stay relevant",
+        "You're stuck in a Skibidi toilet and must escape before you're flushed",
+        "You're a sigma male trying to maintain your grindset while everything falls apart",
+        "Ohio becomes sentient and you must negotiate with it to save the world",
+        "You're failing rizz checks and must improve or die",
+        "Gyatt keeps appearing and you must react correctly each time or face consequences",
+        "You're a fanum tax collector but everyone is avoiding you and you must track them down",
+        "Sigma males declare war on beta males and you're caught in the middle",
+        "You're in Ohio and everything is cursed - you must break the curse",
+        "You're stuck saying 'me when the when the when' and must break free",
+        "You must decide if everything is bussin or nah to survive",
+        "Bro said something so unbelievable reality breaks and you must fix it",
+        "You're so chronically online you must touch grass or fade away",
+        "Your main character energy is depleting and you must recharge it",
+        "NPCs gain consciousness and ask you for help escaping their programming",
+        "You're dating while chronically online and your partner is an AI",
+        "You must find 'da wae' through a maze of memes to reach enlightenment",
+        "Among Us becomes real and you must survive the imposter",
+        "Everyone is sus and you can't trust anyone - you must figure out who's real",
+        "You must detect lies in a world of cap to survive",
+        "You rate everything as based or cringe to determine your fate",
+        "POV: You realize you're the main character and must act like it",
+        "You're an NPC trying to break free and become sigma",
+        "You're the average Redditor navigating life",
+        "You're a Discord mod on a power trip during the apocalypse",
+        "TikTok algorithm feeds you content that predicts your death",
+        "You're speedrunning brainrot before your brain melts",
+        "Gen Alpha speaks only in slang and you must learn or die",
+        "Zoomers and Boomers fight in an epic war and you must choose a side",
+        "You're trading meme stocks and your life depends on it",
+        "Diamond hands vs paper hands - the choice determines everything",
+        "You're launching a rocket to the moon with crypto",
+        "WAGMI calculator predicts your future and it's not good",
+        "You're a crypto bro explaining crypto to your mom during dinner",
+        "You're flipping NFTs trying to make profit before the crash",
+        "You must ape into this project before it's too late",
+        "Rug pull happens and you must survive the financial apocalypse",
+        "DeFi yield farming goes wrong and you must fix it",
+        "Token pumps then dumps and you must time it perfectly",
+        "Crypto winter arrives and you must survive",
+        "You must decide: HODL or sell before everything crashes",
+        "All memes combine: Skibidi rizz gyatt Ohio and you must navigate the chaos",
+        "You're maintaining sigma grindset energy while the world ends",
+        "You must keep your main character energy high or become an NPC",
+        "NPCs detect you're different and hunt you down",
+        "You're dating while chronically online and your partner is an AI",
+        "You must touch grass before you die from screen time",
+        "Everything is rated based or cringe and your life depends on it",
+        "You detect if people are capping in a world of lies",
+        "Everyone is sus and you're paranoid",
+        "Gen Alpha slang is the only language and you must learn it",
+        "Zoomers fight Boomers in epic battles",
+        "Brainrot speedrun timer counts down to your doom",
+        "Meme stocks require diamond hands or you lose everything",
+        "WAGMI calculator predicts your future",
+        "Crypto bro explains everything to you while the world burns",
+        "NFT floor prices drop and you panic",
+        "Rug pull countdown timer ticks down",
+        "You ape into projects blindly",
+        "TikTok algorithm controls your life",
+        "Viral moments determine your success",
+        "You chase trends to stay relevant"
+      ]
+    };
+
+    const fallbackGenres = {
+      normal: [
+        "Flappy Bird (Physics)","Text Adventure","Dating Sim","Tower Defense","Infinite Runner",
+        "Idle Clicker","Bullet Hell","Platformer","Match-3","Turn-Based RPG","Rhythm Game",
+        "Typing Speed Test","Survival Horror","Visual Novel","Card Battler","Snake Clone",
+        "Breakout","Farming Sim","Battle Royale (Text)","Physics Puzzle","Trivia Show",
+        "Metroidvania (Mini)","Pong Variant","Excel Sim","Tamagotchi","Walking Sim",
+        "Whack-a-Mole","Roguelike","Top-Down Racing","Tycoon Sim","QWOP Style",
+        "Courtroom cross-examination mini-game","Reigns-style swipe decisions","Puzzle-box escape room",
+        "Point and Click Adventure","Choose Your Own Adventure","Interactive Fiction",
+        "Wordle variant","Hangman with a twist","Scrabble but chaotic",
+        "Tetris but it's falling","Pac-Man maze runner","Space Invaders remake",
+        "Frogger highway crossing","Donkey Kong platformer","Galaga shoot-em-up",
+        "Asteroids space shooter","Centipede bug shooter","Missile Command defense",
+        "Q*bert isometric jumper","Dig Dug underground","Bubble Bobble platformer"
+      ],
+      chaos: [
+        "Twitter/X timeline simulator","Reddit karma farming","Discord server management","TikTok algorithm manipulation",
+        "OnlyFans content creator sim","Streamer chat moderation","Podcast recording disaster","YouTube comment section",
+        "Instagram influencer growth","LinkedIn cringe post generator","Facebook boomer simulator","Snapchat streak maintainer",
+        "WhatsApp group chat chaos","Telegram crypto pump group","Clubhouse room moderator","BeReal authenticity checker",
+        "Truth Social echo chamber","Parler free speech simulator","Gab alt-right simulator","4chan board simulator",
+        "Tumblr fandom war","Pinterest wedding planner","Etsy shop owner","Amazon review manipulator",
+        "Uber driver rating system","DoorDash tip simulator","Airbnb host nightmare","Tinder swiping simulator",
+        "Bumble women message first","Hinge prompt generator","Grindr grid game","Raya exclusivity simulator",
+        "Substack newsletter writer","Patreon creator dashboard","Ko-fi donation simulator",
+        "Twitch streamer dashboard","YouTube Shorts creator","Instagram Reels maker",
+        "TikTok video editor","Snapchat story creator","WhatsApp status updater",
+        "Telegram channel admin","Signal group moderator","Element matrix chat",
+        "Mastodon federated timeline","Bluesky algorithm","Threads engagement",
+        "LinkedIn post optimizer","Facebook event creator","Nextdoor neighborhood watch"
+      ],
+      brainrot: [
+        "Sigma grindset clicker","Rizz level up RPG","Gyatt collection game","Skibidi tower defense",
+        "Ohio survival horror","Fanum tax evasion","Main character energy bar","NPC behavior puzzle",
+        "Brainrot speedrun timer","Meme stock trading","Diamond hands simulator","WAGMI calculator game",
+        "Crypto bro explainer","NFT flipper tycoon","Ape into project clicker","Rug pull escape room",
+        "DeFi yield farming","Token pump simulator","HODL or sell decision","Crypto winter survival",
+        "TikTok trend chaser","Viral video maker","Algorithm manipulation","Content farm simulator",
+        "Reaction video generator","POV creator game","Sigma vs beta battle","Chronically online dating",
+        "Touch grass meter","Based or cringe detector","Cap or no cap quiz","Sus imposter finder",
+        "Skibidi toilet defense","Sigma male clicker","Rizz check RPG",
+        "Gyatt collection game","Ohio survival horror","Fanum tax evasion",
+        "Main character energy bar","NPC behavior puzzle","Brainrot speedrun",
+        "Meme stock trader","Diamond hands simulator","WAGMI calculator",
+        "Crypto bro explainer","NFT flipper tycoon","Rug pull escape",
+        "DeFi yield farmer","Token pump simulator","HODL decision maker",
+        "TikTok trend chaser","Viral video maker","Algorithm manipulator"
+      ]
+    };
+
+    const fallbackTwists = {
+      normal: [
+        "Controls reverse every 10s","Stop moving = Explode","Narrator lies to you","ASCII Graphics only",
+        "Play as the Villain trying to lose","Fake Blue Screen of Death on loss","Inputs cost money (Debt)",
+        "Inverted Gravity","Screen rotates 90deg randomly","Type 'Sorry' to reload","Invisible Enemies",
+        "Time moves only when you move","Speed doubles every minute","1 HP always","P2 is AI trying to kill you",
+        "Comic Sans Mandatory","Mouth-made Sound Effects","UI runs away from mouse","Control 2 players at once",
+        "Greyscale Mode","Glitch Horror Effects","Fake Pop-up Ads block view","Underwater Physics",
+        "Healing reduces Score","Friendly Fire Always On","Mouse Only (No Keyboard)","Jump inverts colors",
+        "Narrated by Snoop Dogg (Text)","Zero Friction Physics","The 'help' button gaslights you",
+        "Win by losing in a specific way","Everything is a QTE","Button mashing required",
+        "Permadeath but it's funny","Save points are enemies","Checkpoints insult you",
+        "Health bar is your score","Lives are currency","Death is a power-up",
+        "Boss fights are conversations","Puzzles solve themselves","Platforms move randomly",
+        "Gravity changes direction","Time flows backwards","Physics are inconsistent",
+        "Camera follows wrong target","Controls swap randomly","UI elements are enemies",
+        "Sound effects are dialogue","Music is the narrator","Silence is deadly"
+      ],
+      chaos: [
+        "Every action triggers a notification","AI moderator bans you randomly","Algorithm changes rules mid-game",
+        "Deepfake replaces your character","Fake news popups everywhere","Cancel culture comes for you",
+        "Viral moment or flop decision","Trend dies while you play","Influencer takes your idea",
+        "Platform shadowbans you","Content demonetized instantly","Copyright strike simulator",
+        "Fake engagement metrics","Bot followers detected","Verified check disappears",
+        "Elon tweets about your game","Congressional hearing triggered","SEC investigation starts",
+        "Crypto crashes mid-game","NFT becomes worthless","Rug pull happens",
+        "Tech bro explains your game wrong","VC pitches your idea","Startup pivots mid-play",
+        "Layoff simulator activated","Burnout meter fills up","Work-life balance destroyed",
+        "Every click costs money","Ads block gameplay","Microtransactions required",
+        "Subscription model game","Pay-to-win mechanics","Loot box gambling",
+        "Battle pass grind","Daily login rewards","FOMO event timer",
+        "Social media integration","Share to continue","Like to unlock",
+        "Algorithm decides difficulty","AI watches you play","Privacy invasion simulator",
+        "Data collection minigame","Terms of service quiz","Cookie consent puzzle"
+      ],
+      brainrot: [
+        "Sigma grindset music never stops","Rizz check every 5 seconds","Gyatt appears randomly",
+        "Skibidi toilet sound effects","Ohio jumpscare every minute","Fanum tax deducted constantly",
+        "Main character energy depletes","NPCs become self-aware","Brainrot meter fills screen",
+        "Meme stock crashes randomly","Diamond hands or paper hands","WAGMI or NGMI popup",
+        "Crypto bro narrates everything","NFT floor price drops","Rug pull countdown timer",
+        "DeFi protocol exploits you","Token pumps then dumps","HODL or sell pressure",
+        "TikTok algorithm feeds you","Viral or flop decision","Trend dies mid-game",
+        "Sigma vs beta battle mode","Chronically online warning","Touch grass reminder",
+        "Based or cringe detector","Cap or no cap quiz","Sus imposter mode",
+        "Brainrot speedrun timer","Gen Alpha slang only","Zoomer vs Boomer war"
+      ]
+    };
+
+    // Initialize with fallback data IMMEDIATELY (will be updated when JSON loads)
+    themes = fallbackThemes;
+    genres = fallbackGenres;
+    twists = fallbackTwists;
+
+    // ==========================================================
+    // DIFFICULTY MODE + TURN TRACKING
+    // ==========================================================
+    let currentDifficulty = 'normal';
+    let currentTurn = 1;
+    let totalTurns = 0;
+    const DIFFICULTY_POINTS = { normal: 1, chaos: 2, brainrot: 3 };
+
+    function setDifficulty(mode){
+      currentDifficulty = mode;
+      ['normal','chaos','brainrot'].forEach(m => {
+        const btn = document.getElementById(`mode-${m}`);
+        if(m === mode){
+          btn.classList.add('border-2', 'shadow-neon-' + (m==='normal'?'green':m==='chaos'?'yellow':'pink'));
+          btn.classList.remove('border-white/10');
+          if(m === 'normal') btn.classList.add('bg-green-900/30', 'border-green-500/50', 'text-green-300');
+          if(m === 'chaos') btn.classList.add('bg-yellow-900/30', 'border-yellow-500/50', 'text-yellow-300');
+          if(m === 'brainrot') btn.classList.add('bg-pink-900/30', 'border-pink-500/50', 'text-pink-300');
+        } else {
+          btn.classList.remove('border-2', 'shadow-neon-green', 'shadow-neon-yellow', 'shadow-neon-pink',
+            'bg-green-900/30', 'bg-yellow-900/30', 'bg-pink-900/30',
+            'border-green-500/50', 'border-yellow-500/50', 'border-pink-500/50',
+            'text-green-300', 'text-yellow-300', 'text-pink-300');
+          btn.classList.add('border-2', 'border-white/10', 'bg-black/40', 'text-white/70');
+          if(m === 'chaos') btn.classList.add('text-yellow-300');
+          if(m === 'brainrot') btn.classList.add('text-pink-300');
+        }
+      });
+      localStorage.setItem('pra_difficulty', mode);
+      playSound('tick');
+    }
+
+    function updateTurnDisplay(){
+      if (players.length === 0) {
+        document.getElementById('turnDisplay').textContent = `#1`;
+        document.getElementById('totalTurnsDisplay').textContent = "Round 1";
+        document.getElementById('currentPlayerDisplay').textContent = "—";
+        return;
+      }
+      const round = Math.ceil(currentTurn / players.length);
+      const turnInRound = ((currentTurn - 1) % players.length);
+      const playerIndex = turnInRound >= 0 ? turnInRound : 0;
+      const currentPlayer = players[playerIndex];
+      document.getElementById('turnDisplay').textContent = `#${currentTurn}`;
+      document.getElementById('totalTurnsDisplay').textContent = `Round ${round}`;
+      document.getElementById('currentPlayerDisplay').textContent = currentPlayer ? currentPlayer.name : "—";
+    }
+
+    function incrementTurn(){
+      currentTurn++;
+      totalTurns = Math.max(totalTurns, currentTurn);
+      localStorage.setItem('pra_currentTurn', String(currentTurn));
+      localStorage.setItem('pra_totalTurns', String(totalTurns));
+      updateTurnDisplay();
+    }
+
+    function resetTurn(){
+      currentTurn = 1;
+      totalTurns = 0;
+      localStorage.setItem('pra_currentTurn', '1');
+      localStorage.setItem('pra_totalTurns', '0');
+      updateTurnDisplay();
+    }
 
     // ==========================================================
     // ROULETTE LOGIC + HOLD (keep variables across spins)
@@ -769,6 +1852,19 @@
     const hold = { theme:false, genre:false, twist:false };
 
     function getRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+    
+    function getCurrentThemes(){ 
+      if (!themes) themes = fallbackThemes;
+      return themes[currentDifficulty] || themes.normal || []; 
+    }
+    function getCurrentGenres(){ 
+      if (!genres) genres = fallbackGenres;
+      return genres[currentDifficulty] || genres.normal || []; 
+    }
+    function getCurrentTwists(){ 
+      if (!twists) twists = fallbackTwists;
+      return twists[currentDifficulty] || twists.normal || []; 
+    }
 
     function setProgress(msg){
       const el = document.getElementById('progressLine');
@@ -812,23 +1908,23 @@
       const interval = setInterval(() => {
         cycleCount++;
 
-        if(cycleCount < 20 && !hold.theme){ document.getElementById('text-theme').innerText = getRandom(themes); }
-        if(cycleCount < 45 && !hold.genre){ document.getElementById('text-genre').innerText = getRandom(genres); }
-        if(cycleCount < 70 && !hold.twist){ document.getElementById('text-twist').innerText = getRandom(twists); }
+        if(cycleCount < 20 && !hold.theme){ document.getElementById('text-theme').innerText = getRandom(getCurrentThemes()); }
+        if(cycleCount < 45 && !hold.genre){ document.getElementById('text-genre').innerText = getRandom(getCurrentGenres()); }
+        if(cycleCount < 70 && !hold.twist){ document.getElementById('text-twist').innerText = getRandom(getCurrentTwists()); }
 
         if (cycleCount % 2 === 0) playSound('tick');
       }, 100);
 
       // Stop 1: Theme
-      setTimeout(() => { finalizeSlot('theme', themes, 'locked-pink'); }, 2000);
+      setTimeout(() => { finalizeSlot('theme', getCurrentThemes(), 'locked-pink'); }, 2000);
 
       // Stop 2: Genre
-      setTimeout(() => { finalizeSlot('genre', genres, 'locked-cyan'); }, 4500);
+      setTimeout(() => { finalizeSlot('genre', getCurrentGenres(), 'locked-cyan'); }, 4500);
 
       // Stop 3: Twist
       setTimeout(() => {
         clearInterval(interval);
-        finalizeSlot('twist', twists, 'locked-pink');
+        finalizeSlot('twist', getCurrentTwists(), 'locked-pink');
 
         wheel.classList.remove('is-spinning');
         btnText.innerText = "SPIN";
@@ -883,29 +1979,45 @@
     // ==========================================================
     // PROMPT TEMPLATE + COPY
     // ==========================================================
-    const defaultTemplate = `Create an excellent zero-shot game in a single HTML file (HTML/CSS/JS; no external assets required). The game must run offline in a browser.
+    const defaultTemplate = `Create a fun browser game in a single HTML file. Must work offline.
 
-STORY/THEME: {X}
-GENRE/FORMAT: {Y}
-TWIST/MODIFIER: {Z}
+Theme: {X}
+Genre: {Y}
+Twist: {Z}
 
-Hard requirements:
-- Fun within 10 seconds; playable in 2–5 minutes.
-- Clear goal, clear feedback, and a restart button.
-- Polished UI with animations and a sound toggle (simple WebAudio is fine).
+Requirements:
+- Playable in 2-5 minutes, fun within 10 seconds
+- Clear goal, clear win condition, feedback, and restart button
+- Polished UI with animations and sound toggle
 - Include short instructions + a “How to play” overlay.
-- Keyboard support.
-- Provide everything in one HTML code block only. No extra explanation.`;
+- Keyboard controls
+- One HTML file only, no external assets
+
+Recommended libraries (use CDN links):
+- Phaser — full-featured 2D engine (scenes, input, animations, cameras). Great for "real game structure."
+- Kaboom.js — tiny, fast to prototype arcade games; very "zero-shot friendly."
+- PixiJS — high-performance 2D rendering (WebGL); great visuals, less "game framework" out of the box.
+- p5.js — creative coding; super easy drawing + interaction; great for playful party games.
+- Matter.js — excellent 2D physics; pair with your own rendering (canvas) for satisfying collisions.
+- Planck.js — Box2D-style physics in JS (more "platformer physics" style).
+- Three.js — 3D (if you truly need it); heavier mental/model complexity.
+- Howler.js — audio management (music/sfx, mobile quirks). Often paired with vanilla canvas or Phaser.`;
 
     function updatePromptDisplay(){
-      const template = document.getElementById('promptTemplate').value;
+      const templateEl = document.getElementById('promptTemplate');
+      const finalEl = document.getElementById('finalPrompt');
+      if (!templateEl || !finalEl) return;
+      
+      const template = templateEl.value || defaultTemplate;
       let final = template
-        .replace("{X}", `"${currentTheme}"`)
-        .replace("{Y}", `"${currentGenre}"`)
-        .replace("{Z}", `"${currentTwist}"`);
+        .replace("{X}", currentTheme || "")
+        .replace("{Y}", currentGenre || "")
+        .replace("{Z}", currentTwist || "");
 
-      if(!currentTheme) final = "SPIN THE WHEEL TO GENERATE A PROMPT!";
-      document.getElementById('finalPrompt').value = final;
+      if(!currentTheme || !currentGenre || !currentTwist) {
+        final = "SPIN THE WHEEL TO GENERATE A PROMPT!";
+      }
+      finalEl.value = final;
     }
 
     function toggleEdit(){
@@ -1005,9 +2117,17 @@ Hard requirements:
       const p = players[index];
       if (!p) return;
 
-      if (kind === "win") p.wins = Math.max(0, (p.wins||0) + delta);
-      if (kind === "loss") p.losses = Math.max(0, (p.losses||0) + delta);
-      if (kind === "style") p.style = Math.max(0, (p.style||0) + delta);
+      const multiplier = DIFFICULTY_POINTS[currentDifficulty] || 1;
+      const adjustedDelta = delta * multiplier;
+
+      if (kind === "win") p.wins = Math.max(0, (p.wins||0) + adjustedDelta);
+      if (kind === "loss") p.losses = Math.max(0, (p.losses||0) + adjustedDelta);
+      if (kind === "style") p.style = Math.max(0, (p.style||0) + adjustedDelta);
+      
+      // Increment turn on win/loss
+      if ((kind === "win" || kind === "loss") && delta > 0) {
+        incrementTurn();
+      }
 
       // sort by wins then winrate then style
       players.sort((a,b) => {
@@ -1039,12 +2159,14 @@ Hard requirements:
       if (players.length === 0){
         list.innerHTML = `<div class="text-center text-xs text-white/50 py-6">Add players to start tracking wins.</div>`;
         document.getElementById("activeName").textContent = "—";
+        updateTimerPlayerName();
         return;
       }
 
       if (activeIndex >= players.length) activeIndex = 0;
       const active = players[activeIndex];
       document.getElementById("activeName").textContent = active ? active.name : "—";
+      updateTimerPlayerName();
 
       players.forEach((p, index) => {
         const games = (p.wins||0) + (p.losses||0);
@@ -1134,6 +2256,11 @@ Hard requirements:
         localStorage.removeItem("pra_bingo");
         localStorage.removeItem("pra_reactBest");
         localStorage.removeItem("pra_timer");
+        localStorage.removeItem("pra_difficulty");
+        localStorage.removeItem("pra_currentTurn");
+        localStorage.removeItem("pra_totalTurns");
+        localStorage.removeItem("pra_clickerBest");
+        localStorage.removeItem("pra_totalGrind");
         location.reload();
       }
     }
@@ -1165,9 +2292,10 @@ Hard requirements:
       const back = document.getElementById("loungeBack");
       back.style.display = "flex";
       back.setAttribute("aria-hidden","false");
-      renderBingo();
       renderReactionBest();
       renderTimer();
+      updateTimerPlayerName();
+      renderCommunityGames(); // Render games when lounge opens
     }
     function closeLounge(){
       const back = document.getElementById("loungeBack");
@@ -1176,11 +2304,61 @@ Hard requirements:
     }
 
     function showOnboarding(){
-      document.getElementById("onboardBack").style.display = "flex";
+      const modal = document.getElementById("onboardBack");
+      if (!modal) {
+        console.error('Onboarding modal not found!');
+        return;
+      }
+      modal.style.display = "flex";
+      modal.setAttribute('aria-hidden', 'false');
+      renderOnboardPlayers();
     }
+    
+    function addOnboardPlayer(){
+      const input = document.getElementById('onboardPlayerName');
+      const name = (input.value || "").trim().toUpperCase();
+      if (!name) return;
+      players.push({ name: name, wins: 0, losses: 0, style: 0 });
+      input.value = "";
+      activeIndex = players.length - 1;
+      savePlayers();
+      renderOnboardPlayers();
+      playSound('tick');
+    }
+    
+    function renderOnboardPlayers(){
+      const list = document.getElementById('onboardPlayerList');
+      if (!list) return;
+      if (players.length === 0) {
+        list.innerHTML = '<div class="text-white/50">No players added yet</div>';
+        return;
+      }
+      list.innerHTML = players.map((p, idx) => 
+        `<div class="flex items-center justify-between">
+          <span>${idx + 1}. ${p.name}</span>
+          <button onclick="removeOnboardPlayer(${idx})" class="text-red-400 hover:text-red-300 text-[10px]">×</button>
+        </div>`
+      ).join('');
+    }
+    
+    function removeOnboardPlayer(idx){
+      players.splice(idx, 1);
+      if (activeIndex >= players.length) activeIndex = Math.max(0, players.length - 1);
+      savePlayers();
+      renderOnboardPlayers();
+      playSound('tick');
+    }
+    
     function finishOnboarding(){
+      if (players.length === 0) {
+        toastFlash("Add at least one player!");
+        playSound('error');
+        return;
+      }
       localStorage.setItem("pra_seen_tutorial","1");
       document.getElementById("onboardBack").style.display = "none";
+      resetTurn();
+      updateTurnDisplay();
     }
 
     // close modals when clicking backdrop
@@ -1287,8 +2465,23 @@ Hard requirements:
       timer.pausedAt = 0;
       persistTimer();
       tickTimer();
+      updateTimerPlayerName();
       toastFlash("Timer started");
       playSound('tick');
+    }
+
+    function startPlayerTimer(seconds){
+      startTimer(seconds);
+    }
+
+    function updateTimerPlayerName(){
+      const active = players[activeIndex];
+      const nameEl = document.getElementById('timerPlayerName');
+      if (nameEl && active) {
+        nameEl.textContent = active.name;
+      } else if (nameEl) {
+        nameEl.textContent = "—";
+      }
     }
 
     function pauseTimer(){
@@ -1426,6 +2619,270 @@ Hard requirements:
     }
 
     // ==========================================================
+    // COMMUNITY GAMES FUNCTIONS
+    // ==========================================================
+    function renderCommunityGames() {
+      const container = document.getElementById('communityGamesList');
+      if (!container) return;
+
+      if (communityGames.length === 0) {
+        container.innerHTML = '<div class="text-xs text-white/50 text-center py-4 md:col-span-3">No games submitted yet. Be the first!</div>';
+        return;
+      }
+
+      container.innerHTML = communityGames.map(game => {
+        const difficultyColors = {
+          normal: 'text-green-300 bg-green-900/30 border-green-500/50',
+          chaos: 'text-yellow-300 bg-yellow-900/30 border-yellow-500/50',
+          brainrot: 'text-pink-300 bg-pink-900/30 border-pink-500/50'
+        };
+        const diffColor = difficultyColors[game.difficulty] || difficultyColors.normal;
+        
+        return `
+          <div class="glass-panel rounded-xl p-3 border border-white/10">
+            <div class="flex items-start justify-between mb-2">
+              <h4 class="text-sm font-bold text-neon-cyan flex-1">${escapeHtml(game.title)}</h4>
+              <span class="text-[9px] px-2 py-1 rounded uppercase border ${diffColor} ml-2">${game.difficulty}</span>
+            </div>
+            <div class="text-[10px] text-white/60 mb-2">by ${escapeHtml(game.author)}</div>
+            ${game.description ? `<div class="text-xs text-white/70 mb-2">${escapeHtml(game.description)}</div>` : ''}
+            <div class="text-[10px] text-white/50 mb-2">
+              ${game.theme ? `<div>Theme: ${escapeHtml(game.theme)}</div>` : ''}
+              ${game.genre ? `<div>Genre: ${escapeHtml(game.genre)}</div>` : ''}
+              ${game.twist ? `<div>Twist: ${escapeHtml(game.twist)}</div>` : ''}
+            </div>
+            <a href="${escapeHtml(game.url)}" target="_blank" rel="noopener noreferrer"
+              class="block w-full bg-pink-700 hover:bg-pink-600 text-white text-center px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-pink mt-2">
+              Play Game
+            </a>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function refreshCommunityGames() {
+      loadDataFromJSON().then(() => {
+        renderCommunityGames();
+        toastFlash("Games refreshed!");
+      }).catch(err => {
+        console.warn('Failed to refresh games', err);
+        toastFlash("Failed to refresh games");
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showSubmitGameModal() {
+      // Pre-fill with current prompt values (always fill, user can change)
+      const themeEl = document.getElementById('submitGameTheme');
+      const genreEl = document.getElementById('submitGameGenre');
+      const twistEl = document.getElementById('submitGameTwist');
+      const difficultyEl = document.getElementById('submitGameDifficulty');
+      const jsonEl = document.getElementById('submitGameJSON');
+      
+      if (themeEl) themeEl.value = currentTheme || '';
+      if (genreEl) genreEl.value = currentGenre || '';
+      if (twistEl) twistEl.value = currentTwist || '';
+      if (difficultyEl) difficultyEl.value = currentDifficulty || 'normal';
+      if (jsonEl) jsonEl.value = ''; // Clear JSON field
+      
+      const modal = document.getElementById('submitGameBack');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+      }
+    }
+    
+    function parseGameJSON() {
+      const jsonEl = document.getElementById('submitGameJSON');
+      if (!jsonEl || !jsonEl.value.trim()) return;
+      
+      try {
+        const parsed = JSON.parse(jsonEl.value.trim());
+        
+        // Fill form fields from parsed JSON
+        if (parsed.title) document.getElementById('submitGameTitle').value = parsed.title;
+        if (parsed.author) document.getElementById('submitGameAuthor').value = parsed.author;
+        if (parsed.url) document.getElementById('submitGameURL').value = parsed.url;
+        if (parsed.theme) document.getElementById('submitGameTheme').value = parsed.theme;
+        if (parsed.genre) document.getElementById('submitGameGenre').value = parsed.genre;
+        if (parsed.twist) document.getElementById('submitGameTwist').value = parsed.twist;
+        if (parsed.difficulty) document.getElementById('submitGameDifficulty').value = parsed.difficulty;
+        if (parsed.description) document.getElementById('submitGameDescription').value = parsed.description;
+        
+        toastFlash("JSON parsed! Form fields updated.");
+      } catch (e) {
+        // Invalid JSON, don't do anything (user might still be typing)
+      }
+    }
+
+    function closeSubmitGameModal() {
+      const modal = document.getElementById('submitGameBack');
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+      
+      // Clear form
+      document.getElementById('submitGameTitle').value = '';
+      document.getElementById('submitGameAuthor').value = '';
+      document.getElementById('submitGameURL').value = '';
+      document.getElementById('submitGameTheme').value = '';
+      document.getElementById('submitGameGenre').value = '';
+      document.getElementById('submitGameTwist').value = '';
+      document.getElementById('submitGameDifficulty').value = 'normal';
+      document.getElementById('submitGameDescription').value = '';
+      const jsonEl = document.getElementById('submitGameJSON');
+      if (jsonEl) jsonEl.value = '';
+    }
+
+    function generateGamePR() {
+      // Check if JSON field has content - if so, use that instead
+      const jsonEl = document.getElementById('submitGameJSON');
+      let gameData = null;
+      
+      if (jsonEl && jsonEl.value.trim()) {
+        try {
+          gameData = JSON.parse(jsonEl.value.trim());
+          // Validate required fields
+          if (!gameData.title || !gameData.author || !gameData.url) {
+            toastFlash("JSON missing required fields: title, author, url");
+            playSound('error');
+            return;
+          }
+        } catch (e) {
+          toastFlash("Invalid JSON! Please fix the JSON or use the form fields.");
+          playSound('error');
+          return;
+        }
+      }
+      
+      // If no JSON, use form fields
+      if (!gameData) {
+        const title = document.getElementById('submitGameTitle').value.trim();
+        const author = document.getElementById('submitGameAuthor').value.trim();
+        const url = document.getElementById('submitGameURL').value.trim();
+        const theme = document.getElementById('submitGameTheme').value.trim();
+        const genre = document.getElementById('submitGameGenre').value.trim();
+        const twist = document.getElementById('submitGameTwist').value.trim();
+        const difficulty = document.getElementById('submitGameDifficulty').value;
+        const description = document.getElementById('submitGameDescription').value.trim();
+
+        if (!title || !author || !url) {
+          toastFlash("Please fill in required fields (Title, Author, URL)");
+          playSound('error');
+          return;
+        }
+
+        // Validate URL
+        try {
+          new URL(url);
+        } catch (e) {
+          toastFlash("Please enter a valid URL");
+          playSound('error');
+          return;
+        }
+
+        // Create game object
+        gameData = {
+          title,
+          author,
+          url,
+          theme: theme || currentTheme || '',
+          genre: genre || currentGenre || '',
+          twist: twist || currentTwist || '',
+          difficulty,
+          description: description || '',
+          submitted: new Date().toISOString().split('T')[0]
+        };
+      }
+      
+      // Ensure submitted date is set
+      if (!gameData.submitted) {
+        gameData.submitted = new Date().toISOString().split('T')[0];
+      }
+
+      // Extract values for display
+      const { title, author, url, theme, genre, twist, difficulty, description } = gameData;
+
+      // Generate JSON snippet for PR
+      const jsonSnippet = JSON.stringify(gameData, null, 2);
+      const prBody = encodeURIComponent(`## Submit Game: ${title}
+
+**Author:** ${author}
+**URL:** ${url}
+**Difficulty:** ${difficulty}
+
+### Game Details
+${description ? `**Description:** ${description}\n\n` : ''}
+**Theme:** ${theme || 'N/A'}
+**Genre:** ${genre || 'N/A'}
+**Twist:** ${twist || 'N/A'}
+
+### JSON to add to games.json:
+\`\`\`json
+${jsonSnippet}
+\`\`\`
+
+Please add this game to the \`games.json\` file in the \`games\` array.`);
+
+      // Create a proper GitHub issue URL for game submission
+      const issueTitle = `Submit Game: ${title}`;
+      const prUrl = `https://github.com/${GITHUB_REPO.user}/${GITHUB_REPO.repo}/issues/new?title=${encodeURIComponent(issueTitle)}&body=${prBody}`;
+      
+      // Copy JSON snippet to clipboard for easy addition to games.json
+      const jsonToCopy = jsonSnippet;
+      
+      // Copy to clipboard first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(jsonToCopy).then(() => {
+          toastFlash("JSON copied to clipboard!");
+        }).catch(() => {
+          console.warn('Clipboard copy failed');
+        });
+      }
+      
+      // Always try to open the URL - use window.open directly (called from user click)
+      toastFlash("Opening GitHub issue...");
+      
+      // Try window.open (most reliable when called from user interaction)
+      try {
+        const win = window.open(prUrl, '_blank', 'noopener,noreferrer');
+        
+        if (!win || win.closed || typeof win.closed === 'undefined') {
+          // Popup was blocked, show instructions
+          toastFlash("Popup blocked! Check console for JSON.");
+          console.log('Game JSON to add:', jsonToCopy);
+          console.log('GitHub issue URL:', prUrl);
+          setTimeout(() => {
+            const instructions = `Popup was blocked. Please:\n\n1. Copy this JSON:\n\n${jsonToCopy}\n\n2. Go to:\n${prUrl}\n\n3. Paste the JSON in the issue body.`;
+            alert(instructions);
+          }, 500);
+        } else {
+          // Successfully opened
+          console.log('GitHub issue opened:', prUrl);
+          console.log('JSON copied to clipboard:', jsonToCopy);
+        }
+      } catch (e) {
+        console.error('Failed to open URL', e);
+        console.log('Game JSON to add:', jsonToCopy);
+        console.log('GitHub issue URL:', prUrl);
+        alert(`Please manually go to:\n${prUrl}\n\nAnd copy this JSON:\n\n${jsonToCopy}`);
+      }
+      
+      closeSubmitGameModal();
+    }
+
+    // Expose functions globally
+    window.refreshCommunityGames = refreshCommunityGames;
+    window.showSubmitGameModal = showSubmitGameModal;
+    window.closeSubmitGameModal = closeSubmitGameModal;
+    window.generateGamePR = generateGamePR;
+    window.parseGameJSON = parseGameJSON;
+
+    // ==========================================================
     // Boot + Hotkeys
     // ==========================================================
     function boot(){
@@ -1434,25 +2891,57 @@ Hard requirements:
       if (s === "0") soundOn = false;
       document.getElementById('soundStatus').innerText = soundOn ? "ON" : "OFF";
 
+      // Load data from JSON files (async, but don't wait - uses fallback initially)
+      loadDataFromJSON().then(() => {
+        // Data loaded, but game can continue with fallback data
+        console.log('Data loaded from JSON');
+        renderCommunityGames(); // Render games when loaded
+        // Update prompt display in case themes changed
+        updatePromptDisplay();
+      }).catch(err => {
+        console.warn('Failed to load JSON data, using fallback', err);
+        // Still render games (empty array)
+        renderCommunityGames();
+      });
+
+      // Load difficulty
+      const diff = localStorage.getItem("pra_difficulty") || "normal";
+      setDifficulty(diff);
+
+      // Load turn state
+      currentTurn = parseInt(localStorage.getItem("pra_currentTurn") || "1", 10);
+      totalTurns = parseInt(localStorage.getItem("pra_totalTurns") || "0", 10);
+      if (currentTurn < 1) currentTurn = 1;
+      if (totalTurns < currentTurn) totalTurns = currentTurn;
+
       // Template
       const tpl = localStorage.getItem("pra_template") || defaultTemplate;
       document.getElementById("promptTemplate").value = tpl;
 
-      // Players
+      // Players (load before updating turn display)
       loadPlayers();
       renderLeaderboard();
+      updateTurnDisplay(); // Update after players are loaded
 
       // Timer
       loadTimer();
       tickTimer();
       renderTimer();
 
-      // First-run tutorial
+      // First-run tutorial or no players setup
       const seen = localStorage.getItem("pra_seen_tutorial") === "1";
-      if (!seen){
-        showOnboarding();
+      if (!seen || players.length === 0){
+        // Always show onboarding if no players, even if tutorial was seen before
+        if (players.length === 0) {
+          localStorage.removeItem("pra_seen_tutorial");
+        }
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+          showOnboarding();
+        }, 100);
       }
 
+      // Always update prompt display on boot
       updatePromptDisplay();
     }
 
@@ -1494,6 +2983,8 @@ Hard requirements:
     window.openLounge = openLounge;
     window.closeLounge = closeLounge;
     window.finishOnboarding = finishOnboarding;
+    window.addOnboardPlayer = addOnboardPlayer;
+    window.removeOnboardPlayer = removeOnboardPlayer;
 
     window.playRoulette = playRoulette;
     window.toggleEdit = toggleEdit;
@@ -1517,6 +3008,158 @@ Hard requirements:
     window.stopTimer = stopTimer;
 
     window.resetBingo = resetBingo;
+
+    // ==========================================================
+    // LOUNGE: 8bit Clicker
+    // ==========================================================
+    let clickerCount = 0;
+    function clickerClick(){
+      clickerCount++;
+      document.getElementById('clickerCount').textContent = clickerCount;
+      playSound('tick');
+      const best = parseInt(localStorage.getItem("pra_clickerBest") || "0", 10);
+      if (clickerCount > best){
+        localStorage.setItem("pra_clickerBest", String(clickerCount));
+        document.getElementById('clickerBest').textContent = clickerCount;
+      }
+    }
+    function resetClicker(){
+      clickerCount = 0;
+      document.getElementById('clickerCount').textContent = "0";
+    }
+    function loadClickerBest(){
+      const best = localStorage.getItem("pra_clickerBest") || "0";
+      document.getElementById('clickerBest').textContent = best;
+    }
+
+    // ==========================================================
+    // LOUNGE: Meme Generator
+    // ==========================================================
+    const memeTemplates = [
+      "When the {X} hits different",
+      "Me when {X} but {Y}",
+      "POV: You're {X}",
+      "{X} vs {Y}",
+      "Average {X} enjoyer",
+      "Sigma {X} grindset",
+      "{X} in Ohio",
+      "Me explaining {X} to my {Y}",
+      "{X} but it's {Y}",
+      "When {X} is sus",
+      "{X} rizz",
+      "{X} main character energy",
+      "{X} but make it {Y}",
+      "Nobody: ... Me: {X}",
+      "{X} but it's actually {Y}",
+      "Me when {X}",
+      "{X} sigma vs {Y} beta",
+      "{X} but in 2024",
+      "{X} but it's brainrot",
+      "{X} but it's chaos"
+    ];
+    const memeSubjects = [
+      "the LLM","the prompt","the game","the twist","the genre","the story",
+      "prompt roulette","the wheel","the spin","the chaos mode","brainrot mode",
+      "the sigma grindset","the rizz check","the gyatt","the skibidi",
+      "the Ohio final boss","the fanum tax","the main character","the NPC",
+      "the crypto bro","the NFT","the diamond hands","the WAGMI",
+      "the TikTok algorithm","the viral moment","the trend","the cancel culture"
+    ];
+    function generateMeme(){
+      const template = memeTemplates[Math.floor(Math.random() * memeTemplates.length)];
+      const subj1 = memeSubjects[Math.floor(Math.random() * memeSubjects.length)];
+      const subj2 = memeSubjects[Math.floor(Math.random() * memeSubjects.length)];
+      let meme = template.replace("{X}", subj1).replace("{Y}", subj2);
+      document.getElementById('memeText').textContent = meme;
+      playSound('tick');
+    }
+
+    // ==========================================================
+    // LOUNGE: Sigma Grindset Timer
+    // ==========================================================
+    let grindTimer = { running: false, endAt: 0, pausedAt: 0, remaining: 0, interval: null };
+    let totalGrindSeconds = 0;
+
+    function startGrind(seconds){
+      grindTimer.running = true;
+      grindTimer.remaining = seconds;
+      grindTimer.endAt = Date.now() + seconds*1000;
+      grindTimer.pausedAt = 0;
+      tickGrind();
+      playSound('tick');
+    }
+    function pauseGrind(){
+      if (!grindTimer.running) return;
+      grindTimer.running = false;
+      grindTimer.pausedAt = Date.now();
+      grindTimer.remaining = Math.max(0, Math.round((grindTimer.endAt - Date.now())/1000));
+      renderGrind();
+    }
+    function stopGrind(){
+      if (grindTimer.running){
+        const completed = Math.round((grindTimer.endAt - Date.now())/1000);
+        if (completed > 0) totalGrindSeconds += (grindTimer.endAt - Date.now())/1000;
+      }
+      grindTimer.running = false;
+      grindTimer.endAt = 0;
+      grindTimer.pausedAt = 0;
+      grindTimer.remaining = 0;
+      renderGrind();
+      saveGrind();
+    }
+    function tickGrind(){
+      clearInterval(grindTimer.interval);
+      grindTimer.interval = setInterval(()=>{
+        renderGrind();
+        if (grindTimer.running){
+          const left = Math.round((grindTimer.endAt - Date.now())/1000);
+          if (left <= 0){
+            const completed = Math.round((grindTimer.endAt - Date.now())/1000);
+            totalGrindSeconds += Math.abs(completed);
+            grindTimer.running = false;
+            grindTimer.remaining = 0;
+            renderGrind();
+            saveGrind();
+            toastFlash("GRIND COMPLETE!");
+            playSound('win');
+          }
+        }
+      }, 250);
+    }
+    function renderGrind(){
+      const el = document.getElementById("grindDisplay");
+      if (!el) return;
+      if (grindTimer.running){
+        const left = Math.max(0, Math.round((grindTimer.endAt - Date.now())/1000));
+        el.textContent = fmtTime(left);
+      } else if (grindTimer.remaining > 0){
+        el.textContent = fmtTime(grindTimer.remaining);
+      } else {
+        el.textContent = "—:—";
+      }
+      const totalMins = Math.floor(totalGrindSeconds / 60);
+      const totalSecs = Math.floor(totalGrindSeconds % 60);
+      document.getElementById('totalGrind').textContent = `${totalMins}:${String(totalSecs).padStart(2,'0')}`;
+    }
+    function loadGrind(){
+      try{
+        const saved = localStorage.getItem("pra_totalGrind");
+        if (saved) totalGrindSeconds = parseFloat(saved) || 0;
+      }catch(e){}
+      renderGrind();
+    }
+    function saveGrind(){
+      localStorage.setItem("pra_totalGrind", String(totalGrindSeconds));
+    }
+
+    window.clickerClick = clickerClick;
+    window.resetClicker = resetClicker;
+    window.generateMeme = generateMeme;
+    window.startGrind = startGrind;
+    window.pauseGrind = pauseGrind;
+    window.stopGrind = stopGrind;
+    window.setDifficulty = setDifficulty;
+    window.startPlayerTimer = startPlayerTimer;
 
     boot();
   </script>

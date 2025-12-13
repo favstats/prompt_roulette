@@ -1,0 +1,26 @@
+{
+  "games": [
+    {
+      "title": "Cage's Declaration Run",
+      "author": "Community",
+      "theme": "Nic Cage must steal the Declaration of Independence again, but this time it's harder",
+      "genre": "Bullet Hell",
+      "twist": "Comic Sans Mandatory",
+      "difficulty": "normal",
+      "url": "https://favstats.github.io/prompt_roulette/games/cages-declaration-run.html",
+      "description": "Dodge security lasers as Nic Cage to steal the Declaration of Independence. Bullet hell gameplay with Comic Sans MS font.",
+      "submitted": "2024-01-01"
+    },
+    {
+      "title": "HELLCORD MOD: Flap & Ban",
+      "author": "Community",
+      "theme": "You're a Discord admin moderating a server that's slowly descending into chaos",
+      "genre": "Flappy Bird (Physics)",
+      "twist": "Fake Pop-up Ads block view",
+      "difficulty": "normal",
+      "url": "https://favstats.github.io/prompt_roulette/games/hellcord-mod-flap-ban.html",
+      "description": "Manage a Discord server for demons as an imp moderator. Flap through channel gates while fake microtransaction popups block your view. Stay airborne, stay employed.",
+      "submitted": "2024-01-01"
+    }
+  ]
+}

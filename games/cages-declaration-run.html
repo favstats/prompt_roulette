@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cage's Declaration Run</title>
+    <style>
+        :root {
+            --neon-blue: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff00;
+            --bg-color: #1a1a1a;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif; /* Mandatory Twist */
+            color: white;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            border: 5px solid var(--neon-blue);
+            border-radius: 10px;
+        }
+
+        canvas {
+            display: block;
+            background: radial-gradient(circle at center, #2a2a2a, #000);
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: var(--neon-blue);
+            text-shadow: 4px 4px 0px var(--neon-pink);
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin: 10px 0;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: var(--neon-pink);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            font-family: 'Comic Sans MS', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 50px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(255, 0, 255, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 0, 255, 0.6);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            pointer-events: none;
+            display: none;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        #sound-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Comic Sans MS', sans-serif;
+            opacity: 0.7;
+            z-index: 20;
+        }
+        
+        #sound-toggle:hover { opacity: 1; }
+
+        .hidden { display: none !important; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .highlight { color: var(--neon-green); font-weight: bold; }
+        .danger { color: #ff4444; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <button id="sound-toggle">Sound: ON</button>
+    <div id="hud">
+        Documents: <span id="score-display" class="highlight">0</span>
+    </div>
+
+    <div id="start-screen" class="overlay">
+        <h1>STEAL THE DECLARATION</h1>
+        <p>You are Nic. The National Archives are guarded.</p>
+        <p>Use <span class="highlight">WASD</span> or <span class="highlight">Arrows</span> to move.</p>
+        <p>Dodge the <span class="danger">Security Lasers</span>.</p>
+        <p>Grab the <span class="highlight">Scrolls 📜</span>.</p>
+        <button class="btn" id="start-btn">Let's do this!</button>
+    </div>
+
+    <div id="game-over-screen" class="overlay hidden">
+        <h1 style="color: #ff4444; text-shadow: 4px 4px 0 #fff;">BUSTED!</h1>
+        <p id="death-msg">Not the bees!</p>
+        <p>You stole <span id="final-score" class="highlight">0</span> Declarations.</p>
+        <button class="btn" id="restart-btn">Try Again</button>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+</div>
+
+<script>
+    /** GAME CONSTANTS & SETUP **/
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('score-display');
+    const finalScoreDisplay = document.getElementById('final-score');
+    const startScreen = document.getElementById('start-screen');
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const startBtn = document.getElementById('start-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const soundBtn = document.getElementById('sound-toggle');
+    const deathMsg = document.getElementById('death-msg');
+
+    let audioCtx = null;
+    let soundEnabled = true;
+    let gameLoopId;
+    let score = 0;
+    let frameCount = 0;
+    let isGameOver = false;
+
+    // Entities
+    const player = { x: 400, y: 300, radius: 15, speed: 5, color: '#ffcc00' };
+    let bullets = [];
+    let particles = [];
+    let target = { x: 0, y: 0, radius: 20, active: false };
+
+    // Inputs
+    const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+
+    /** AUDIO SYSTEM (Simple WebAudio Oscillators) **/
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playSound(type) {
+        if (!soundEnabled || !audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'collect') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } else if (type === 'die') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.linearRampToValueAtTime(50, now + 0.5);
+            gain.gain.setValueAtTime(0.5, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+            osc.start(now);
+            osc.stop(now + 0.5);
+        } else if (type === 'shoot') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+            gain.gain.setValueAtTime(0.05, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        }
+    }
+
+    /** GAME LOGIC **/
+    function spawnTarget() {
+        // Keep away from edges
+        const padding = 50;
+        target.x = padding + Math.random() * (canvas.width - padding * 2);
+        target.y = padding + Math.random() * (canvas.height - padding * 2);
+        target.active = true;
+        // Particle burst effect for spawn
+        createParticles(target.x, target.y, 10, '#00ffff');
+    }
+
+    function spawnBullet() {
+        // Bullet Hell Logic: Spawns from edges aiming vaguely at player
+        const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+        let x, y;
+        
+        if (side === 0) { x = Math.random() * canvas.width; y = -10; }
+        else if (side === 1) { x = canvas.width + 10; y = Math.random() * canvas.height; }
+        else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + 10; }
+        else { x = -10; y = Math.random() * canvas.height; }
+
+        // Calculate angle to player
+        const angle = Math.atan2(player.y - y, player.x - x);
+        // Add randomness to spread
+        const spread = (Math.random() - 0.5) * 0.5;
+        
+        const speed = 3 + (score * 0.2); // Get faster as score goes up
+        
+        bullets.push({
+            x: x, y: y,
+            vx: Math.cos(angle + spread) * speed,
+            vy: Math.sin(angle + spread) * speed,
+            radius: 4 + (score > 10 ? 2 : 0), // Bullets get bigger
+            color: '#ff4444'
+        });
+
+        playSound('shoot');
+    }
+
+    function createParticles(x, y, count, color) {
+        for(let i=0; i<count; i++) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * 5,
+                vy: (Math.random() - 0.5) * 5,
+                life: 1.0,
+                color: color
+            });
+        }
+    }
+
+    function resetGame() {
+        score = 0;
+        bullets = [];
+        particles = [];
+        player.x = canvas.width / 2;
+        player.y = canvas.height / 2;
+        scoreDisplay.innerText = score;
+        spawnTarget();
+        frameCount = 0;
+        isGameOver = false;
+        
+        document.getElementById('hud').style.display = 'block';
+        startScreen.classList.add('hidden');
+        gameOverScreen.classList.add('hidden');
+        
+        if(gameLoopId) cancelAnimationFrame(gameLoopId);
+        gameLoop();
+    }
+
+    function gameOver() {
+        isGameOver = true;
+        playSound('die');
+        finalScoreDisplay.innerText = score;
+        
+        // Random Nic Cage Quote
+        const quotes = [
+            "Not the bees! 🐝",
+            "I'm going to steal it.",
+            "How'd it get burned?!",
+            "A B C D E F G...",
+            "Put the bunnny back in the box."
+        ];
+        deathMsg.innerText = quotes[Math.floor(Math.random() * quotes.length)];
+
+        gameOverScreen.classList.remove('hidden');
+        document.getElementById('hud').style.display = 'none';
+    }
+
+    function update() {
+        if (isGameOver) return;
+
+        // Player Movement
+        let dx = 0;
+        let dy = 0;
+        if (keys.w || keys.ArrowUp) dy = -1;
+        if (keys.s || keys.ArrowDown) dy = 1;
+        if (keys.a || keys.ArrowLeft) dx = -1;
+        if (keys.d || keys.ArrowRight) dx = 1;
+
+        // Normalize diagonal movement
+        if (dx !== 0 || dy !== 0) {
+            const length = Math.sqrt(dx*dx + dy*dy);
+            dx /= length;
+            dy /= length;
+            player.x += dx * player.speed;
+            player.y += dy * player.speed;
+        }
+
+        // Clamp player to screen
+        player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+        player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+
+        // Target Collection
+        const distToTarget = Math.hypot(player.x - target.x, player.y - target.y);
+        if (distToTarget < player.radius + target.radius) {
+            score++;
+            scoreDisplay.innerText = score;
+            scoreDisplay.parentElement.style.transform = "scale(1.2)";
+            setTimeout(() => scoreDisplay.parentElement.style.transform = "scale(1)", 100);
+            
+            createParticles(target.x, target.y, 20, '#00ff00');
+            playSound('collect');
+            spawnTarget();
+        }
+
+        // Bullet Logic
+        // Spawn rate based on score (Difficulty Curve)
+        let spawnRate = Math.max(10, 60 - (score * 2)); 
+        if (frameCount % spawnRate === 0) spawnBullet();
+
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            let b = bullets[i];
+            b.x += b.vx;
+            b.y += b.vy;
+
+            // Collision with player
+            let dist = Math.hypot(player.x - b.x, player.y - b.y);
+            if (dist < player.radius + b.radius - 4) { // -4 for a slightly forgiving hitbox
+                createParticles(player.x, player.y, 30, '#ff0000');
+                gameOver();
+            }
+
+            // Remove offscreen bullets
+            if (b.x < -20 || b.x > canvas.width + 20 || b.y < -20 || b.y > canvas.height + 20) {
+                bullets.splice(i, 1);
+            }
+        }
+
+        // Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life -= 0.05;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        frameCount++;
+    }
+
+    function draw() {
+        // Clear background
+        ctx.fillStyle = '#1a1a1a'; // Dark grey
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Target (The Declaration)
+        ctx.fillStyle = '#f4eeb1'; // Parchment color
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ffff00';
+        ctx.font = "30px 'Comic Sans MS'";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("📜", target.x, target.y);
+        ctx.shadowBlur = 0;
+
+        // Draw Player (Nic)
+        ctx.font = "30px Arial";
+        ctx.fillText("🥸", player.x, player.y);
+        
+        // Draw Bullets (Lasers/Security)
+        ctx.fillStyle = '#ff4444';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ff0000';
+        for (let b of bullets) {
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+
+        // Draw Particles
+        for (let p of particles) {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    function gameLoop() {
+        if (!isGameOver) {
+            update();
+            draw();
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+    }
+
+    /** EVENT LISTENERS **/
+    window.addEventListener('keydown', (e) => {
+        if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+    });
+
+    soundBtn.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        soundBtn.innerText = soundEnabled ? "Sound: ON" : "Sound: OFF";
+    });
+
+    startBtn.addEventListener('click', () => {
+        initAudio();
+        resetGame();
+    });
+
+    restartBtn.addEventListener('click', () => {
+        resetGame();
+    });
+
+    // Initial render
+    draw();
+
+</script>
+</body>
+</html>
