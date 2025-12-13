@@ -1,521 +1,1524 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt Roulette: Neon Audio Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --neon-pink: #ff00de;
-            --neon-cyan: #00f3ff;
-            --bg-dark: #09000f;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Roulette Arcade</title>
 
-        body {
-            background-color: var(--bg-dark);
-            color: #e0e0e0;
-            font-family: 'Rajdhani', sans-serif;
-            background-image: 
-                radial-gradient(circle at 50% 50%, #1a051a 0%, #000000 100%);
-            overflow-x: hidden;
-        }
-        
-        .arcade-font {
-            font-family: 'Press Start 2P', cursive;
-        }
+  <!-- Tailwind for quick layout (keeps your current vibe) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-        /* --- THE WHEEL CSS --- */
-        .roulette-container {
-            position: relative;
-            width: 160px;
-            height: 160px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.2s;
-            filter: drop-shadow(0 0 15px var(--neon-pink));
-        }
-        .roulette-container:active { transform: scale(0.95); }
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
 
-        .roulette-wheel {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 4px solid #fff;
-            background: conic-gradient(
-                var(--neon-pink) 0deg 30deg,
-                #222 30deg 60deg,
-                var(--neon-cyan) 60deg 90deg,
-                #222 90deg 120deg,
-                var(--neon-pink) 120deg 150deg,
-                #222 150deg 180deg,
-                var(--neon-cyan) 180deg 210deg,
-                #222 210deg 240deg,
-                var(--neon-pink) 240deg 270deg,
-                #222 270deg 300deg,
-                var(--neon-cyan) 300deg 330deg,
-                #222 330deg 360deg
-            );
-        }
+  <style>
+    :root{
+      --neon-pink:#ff00de;
+      --neon-cyan:#00f3ff;
+      --neon-yellow:#ffd166;
+      --neon-green:#2fe18c;
+      --bg-dark:#09000f;
+      --panel: rgba(20, 0, 30, 0.72);
+    }
 
-        .roulette-inner {
-            position: absolute;
-            width: 75%;
-            height: 75%;
-            background: #000;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #555;
-            z-index: 10;
-        }
+    body{
+      background-color: var(--bg-dark);
+      color:#e8e8e8;
+      font-family:'Rajdhani', sans-serif;
+      background-image:
+        radial-gradient(circle at 50% 50%, #1a051a 0%, #000000 100%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 5px);
+      overflow-x:hidden;
+    }
 
-        .is-spinning { animation: spin-infinite 0.3s linear infinite; }
-        @keyframes spin-infinite { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .arcade-font{font-family:'Press Start 2P', cursive;}
+    .glass-panel{
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 0, 222, 0.22);
+      box-shadow: 0 0 30px rgba(0,0,0,0.55);
+      position:relative;
+      overflow:hidden;
+    }
+    .glass-panel::before{
+      content:"";
+      position:absolute; inset:-60%;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,0,222,0.12), transparent 40%),
+        radial-gradient(circle at 80% 30%, rgba(0,243,255,0.10), transparent 40%),
+        radial-gradient(circle at 55% 85%, rgba(47,225,140,0.08), transparent 45%);
+      filter: blur(14px);
+      opacity: .9;
+      transform: rotate(7deg);
+      pointer-events:none;
+    }
+    .glass-panel > *{position:relative;}
 
-        /* --- SLOT STYLING --- */
-        .bet-box {
-            background: rgba(255, 0, 222, 0.05);
-            border: 1px solid #333;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
-            position: relative;
-            overflow: hidden;
-            transform: scale(1);
-        }
+    /* Header glow */
+    .titleGlow{
+      text-shadow: 3px 3px 0px var(--neon-pink), -3px -3px 0px var(--neon-cyan);
+    }
 
-        .bet-box.locked-pink {
-            border: 2px solid var(--neon-pink);
-            background: rgba(255, 0, 222, 0.15);
-            box-shadow: 0 0 15px var(--neon-pink);
-            transform: scale(1.02);
-        }
-        
-        .bet-box.locked-cyan {
-            border: 2px solid var(--neon-cyan);
-            background: rgba(0, 243, 255, 0.15);
-            box-shadow: 0 0 15px var(--neon-cyan);
-            transform: scale(1.02);
-        }
+    /* Small neon utility */
+    .text-neon-pink{color:var(--neon-pink); text-shadow: 0 0 6px rgba(255,0,222,0.9);}
+    .text-neon-cyan{color:var(--neon-cyan); text-shadow: 0 0 6px rgba(0,243,255,0.8);}
+    .text-neon-yellow{color:var(--neon-yellow); text-shadow: 0 0 6px rgba(255,209,102,0.55);}
+    .shadow-neon-pink{box-shadow: 0 0 12px rgba(255,0,222,0.55);}
+    .shadow-neon-cyan{box-shadow: 0 0 12px rgba(0,243,255,0.45);}
 
-        .slot-text {
-            font-size: 1.2rem;
-            font-weight: 700;
-            line-height: 1.2;
-            text-shadow: 2px 2px 0px #000;
-        }
+    /* Scrollbar */
+    ::-webkit-scrollbar{width: 8px;}
+    ::-webkit-scrollbar-track{background:#000;}
+    ::-webkit-scrollbar-thumb{background: var(--neon-pink); border-radius: 6px;}
 
-        .flicker {
-            opacity: 0.5;
-            filter: blur(2px);
-            transform: scale(0.98);
-        }
+    /* --- The Wheel --- */
+    .roulette-container{
+      position: relative;
+      width: 170px; height: 170px;
+      margin: 0 auto;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      transition: transform .15s ease;
+      filter: drop-shadow(0 0 16px rgba(255,0,222,0.7));
+    }
+    .roulette-container:active{ transform: scale(0.96); }
 
-        /* UI Elements */
-        .glass-panel {
-            background: rgba(20, 0, 30, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 0, 222, 0.2);
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-        }
+    .roulette-wheel{
+      position:absolute;
+      width:100%; height:100%;
+      border-radius:50%;
+      border:4px solid #fff;
+      background: conic-gradient(
+        var(--neon-pink) 0deg 30deg,
+        #222 30deg 60deg,
+        var(--neon-cyan) 60deg 90deg,
+        #222 90deg 120deg,
+        var(--neon-pink) 120deg 150deg,
+        #222 150deg 180deg,
+        var(--neon-cyan) 180deg 210deg,
+        #222 210deg 240deg,
+        var(--neon-pink) 240deg 270deg,
+        #222 270deg 300deg,
+        var(--neon-cyan) 300deg 330deg,
+        #222 330deg 360deg
+      );
+    }
+    .roulette-pointer{
+      position:absolute;
+      top:-8px;
+      width:0; height:0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-bottom: 22px solid rgba(255,255,255,0.95);
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+      z-index: 25;
+    }
+    .roulette-inner{
+      position:absolute;
+      width: 75%; height: 75%;
+      background:#000;
+      border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      border:2px solid #555;
+      z-index: 10;
+    }
+    .is-spinning{ animation: spin-infinite .28s linear infinite; }
+    @keyframes spin-infinite{ from{transform: rotate(0deg);} to{transform: rotate(360deg);} }
 
-        input[type="text"], textarea {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid #444;
-            color: var(--neon-cyan);
-            font-family: monospace;
-        }
-        
-        /* Utility */
-        .text-neon-pink { color: var(--neon-pink); text-shadow: 0 0 5px var(--neon-pink); }
-        .text-neon-cyan { color: var(--neon-cyan); text-shadow: 0 0 5px var(--neon-cyan); }
-        
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: var(--neon-pink); border-radius: 3px; }
-    </style>
+    /* --- Slots --- */
+    .bet-box{
+      background: rgba(255, 0, 222, 0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      transition: all 0.26s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow:hidden;
+      transform: scale(1);
+    }
+    .bet-box.locked-pink{
+      border: 2px solid var(--neon-pink);
+      background: rgba(255, 0, 222, 0.16);
+      box-shadow: 0 0 18px rgba(255,0,222,0.55);
+      transform: scale(1.02);
+    }
+    .bet-box.locked-cyan{
+      border: 2px solid var(--neon-cyan);
+      background: rgba(0, 243, 255, 0.16);
+      box-shadow: 0 0 18px rgba(0,243,255,0.45);
+      transform: scale(1.02);
+    }
+    .slot-text{
+      font-size: 1.18rem;
+      font-weight: 800;
+      line-height: 1.2;
+      text-shadow: 2px 2px 0px #000;
+    }
+    .flicker{opacity:0.55; filter: blur(1.6px); transform: scale(0.985);}
+    .pulseHint{
+      animation: pulseHint 1.2s ease-in-out infinite;
+    }
+    @keyframes pulseHint{
+      0%,100%{opacity:.55}
+      50%{opacity:1}
+    }
+
+    /* Tooltip bubble */
+    .tip{
+      position:absolute;
+      right: 14px;
+      top: -10px;
+      transform: translateY(-100%);
+      background: rgba(0,0,0,0.78);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #fff;
+      font-size: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      box-shadow: 0 0 16px rgba(0,0,0,0.55);
+      max-width: 240px;
+      display:none;
+      z-index: 40;
+    }
+    .tip::after{
+      content:"";
+      position:absolute;
+      left: 24px;
+      bottom: -6px;
+      width: 10px; height: 10px;
+      background: rgba(0,0,0,0.78);
+      border-right: 1px solid rgba(255,255,255,0.14);
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+      transform: rotate(45deg);
+    }
+    .showTip{display:block;}
+
+    /* Modal */
+    .modalBack{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(6px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 60;
+    }
+    .modal{
+      width: min(920px, 100%);
+      background: rgba(10,0,18,0.94);
+      border: 1px solid rgba(255,0,222,0.24);
+      border-radius: 18px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.65);
+      overflow:hidden;
+    }
+    .modalHd{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 14px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+    }
+    .modalBd{padding: 14px;}
+    .modalTitle{font-size: 12px; letter-spacing: .12em; text-transform: uppercase;}
+    .xbtn{
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      cursor:pointer;
+    }
+    .xbtn:hover{background: rgba(255,255,255,0.10);}
+
+    /* Mini-games */
+    .pixelBox{
+      border: 1px dashed rgba(0,243,255,0.35);
+      background: rgba(0,0,0,0.35);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .miniTitle{
+      font-size: 10px;
+      letter-spacing:.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+    }
+    .bigNum{
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    /* Focus */
+    button:focus, textarea:focus, input:focus {outline:none; box-shadow: 0 0 0 3px rgba(0,243,255,0.18);}
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      .is-spinning, .pulseHint{animation:none!important;}
+    }
+  </style>
 </head>
+
 <body class="min-h-screen p-4 flex flex-col items-center">
 
-    <header class="text-center mb-8 mt-4 w-full max-w-4xl relative">
-        <h1 class="text-4xl md:text-6xl text-white arcade-font mb-2 text-center leading-tight" 
-            style="text-shadow: 3px 3px 0px var(--neon-pink), -3px -3px 0px var(--neon-cyan);">
-            PROMPT<br>ROULETTE
+  <!-- HELP / ABOUT MODAL -->
+  <div id="modalBack" class="modalBack" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal">
+      <div class="modalHd">
+        <div class="arcade-font text-white text-xs titleGlow">PROMPT ROULETTE • MANUAL</div>
+        <button class="xbtn arcade-font" onclick="closeModal()">CLOSE</button>
+      </div>
+      <div class="modalBd grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-3">
+          <div class="arcade-font text-xs text-neon-cyan">HOW IT WORKS</div>
+          <div class="text-sm leading-relaxed text-white/80">
+            <ol class="list-decimal pl-5 space-y-2">
+              <li><b>Spin</b> to lock three variables in sequence: <span class="text-neon-pink">X</span> story, <span class="text-neon-cyan">Y</span> genre, <span class="text-neon-pink">Z</span> twist.</li>
+              <li><b>Copy prompt</b> and paste it into any LLM.</li>
+              <li>Ask for <b>a single HTML file</b>, open it in your browser, and play the generated game.</li>
+              <li>When you win/lose, log it in the <b>High Scores</b>.</li>
+            </ol>
+          </div>
+
+          <div class="pixelBox">
+            <div class="miniTitle">Pro tips</div>
+            <div class="text-sm text-white/75 mt-2 space-y-2">
+              <div>• Use <span class="kbd arcade-font text-[10px] px-2 py-1 rounded bg-black/60 border border-white/10">SPACE</span> to spin.</div>
+              <div>• Use <span class="kbd arcade-font text-[10px] px-2 py-1 rounded bg-black/60 border border-white/10">C</span> to copy the prompt.</div>
+              <div>• While the LLM generates: open the <b>Arcade Lounge</b> and play a micro-game.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="arcade-font text-xs text-neon-pink">ABOUT</div>
+          <div class="text-sm leading-relaxed text-white/80">
+            Prompt Roulette is a party game for generating browser games on the fly with an LLM.
+            Made by <b>Fabio Votta</b> (<b>@favstats</b>).
+          </div>
+          <div class="text-sm leading-relaxed text-white/70">
+            Share it freely, remix it, and please keep the “About” credit intact.
+          </div>
+
+          <div class="pixelBox">
+            <div class="miniTitle">House rules (optional)</div>
+            <div class="text-sm text-white/75 mt-2 space-y-2">
+              <div>• Best-of-5 rounds per player.</div>
+              <div>• If two players tie in wins, win-rate decides.</div>
+              <div>• If a generated game is broken, you get <span class="text-neon-yellow">one</span> free reroll.</div>
+            </div>
+          </div>
+
+          <div class="pixelBox">
+            <div class="miniTitle">Safe spice</div>
+            <div class="text-sm text-white/75 mt-2">
+              “Spicy” means edgy satire and chaos, not hate. If a roll feels off, spin again.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOUNGE MODAL -->
+  <div id="loungeBack" class="modalBack" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal">
+      <div class="modalHd">
+        <div class="arcade-font text-white text-xs titleGlow">ARCADE LOUNGE • KILL TIME</div>
+        <button class="xbtn arcade-font" onclick="closeLounge()">CLOSE</button>
+      </div>
+      <div class="modalBd grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Reaction -->
+        <div class="glass-panel rounded-xl p-4">
+          <div class="arcade-font text-xs text-neon-cyan">REACTION TEST</div>
+          <p class="text-xs text-white/70 mt-2">Click when the panel turns <span class="text-neon-green">GREEN</span>. Best time is saved locally.</p>
+          <div id="reactPanel" class="mt-3 pixelBox select-none cursor-pointer text-center py-8 border border-white/10"
+               onclick="reactionClick()">
+            <div id="reactState" class="arcade-font text-xs text-white/80">CLICK TO ARM</div>
+            <div id="reactTime" class="mt-3 bigNum text-white/90">—</div>
+            <div class="mt-2 text-xs text-white/60">Best: <span id="reactBest">—</span></div>
+          </div>
+        </div>
+
+        <!-- Build timer -->
+        <div class="glass-panel rounded-xl p-4">
+          <div class="arcade-font text-xs text-neon-pink">BUILD TIMER</div>
+          <p class="text-xs text-white/70 mt-2">Start a countdown while your LLM generates the game. When it hits 0, pass the laptop or log the result.</p>
+
+          <div class="mt-3 grid grid-cols-3 gap-2">
+            <button class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-pink"
+              onclick="startTimer(120)">2:00</button>
+            <button class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-pink"
+              onclick="startTimer(180)">3:00</button>
+            <button class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-pink"
+              onclick="startTimer(300)">5:00</button>
+          </div>
+
+          <div class="mt-4 pixelBox text-center">
+            <div class="text-xs text-white/65 uppercase tracking-widest">Time left</div>
+            <div id="timerDisplay" class="bigNum text-neon-yellow mt-2">—:—</div>
+            <div class="mt-3 flex gap-2 justify-center">
+              <button class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-xs uppercase"
+                onclick="pauseTimer()">Pause</button>
+              <button class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-xs uppercase"
+                onclick="stopTimer()">Stop</button>
+            </div>
+          </div>
+
+          <div class="mt-3 text-xs text-white/70">
+            Bonus: when the timer ends, you can award <span class="text-neon-yellow">+1 “style point”</span> to whoever kept the room entertained.
+          </div>
+        </div>
+
+        <!-- Bingo -->
+        <div class="glass-panel rounded-xl p-4 md:col-span-2">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div class="arcade-font text-xs text-neon-yellow">PROMPT BINGO</div>
+              <div class="text-xs text-white/70 mt-1">Mark boxes while you wait. First bingo gets a style point. Saved locally.</div>
+            </div>
+            <button class="bg-cyan-700 hover:bg-cyan-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-cyan"
+              onclick="resetBingo()">Reset Bingo</button>
+          </div>
+
+          <div id="bingoGrid" class="mt-3 grid grid-cols-3 gap-2"></div>
+
+          <div class="mt-3 text-xs text-white/70">
+            Optional: if someone gets bingo, press <span class="arcade-font text-neon-cyan text-[10px]">+STYLE</span> next to their name in High Scores.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIRST-RUN OVERLAY -->
+  <div id="onboardBack" class="modalBack" style="display:none;" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalHd">
+        <div class="arcade-font text-white text-xs titleGlow">WELCOME • INSERT COIN</div>
+        <button class="xbtn arcade-font" onclick="finishOnboarding()">SKIP</button>
+      </div>
+      <div class="modalBd">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <div class="space-y-3">
+            <div class="arcade-font text-xs text-neon-cyan">THE GAME</div>
+            <p class="text-sm text-white/80 leading-relaxed">
+              You generate a new browser game each round. The room plays. The room judges.
+              Most wins takes the crown. No setup. No mercy.
+            </p>
+
+            <div class="pixelBox">
+              <div class="miniTitle">4-step loop</div>
+              <ol class="list-decimal pl-5 mt-2 text-sm text-white/80 space-y-2">
+                <li><b>Spin</b> the wheel.</li>
+                <li><b>Copy</b> the prompt payload.</li>
+                <li><b>Paste</b> into an LLM → get a single HTML game.</li>
+                <li><b>Win</b> or <b>lose</b> → log it.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="arcade-font text-xs text-neon-pink">DO THIS NOW</div>
+            <div class="pixelBox">
+              <div class="text-sm text-white/80 leading-relaxed">
+                Press <span class="arcade-font text-neon-cyan text-[10px]">SPACE</span> to spin.
+                After the twist locks, hit <span class="arcade-font text-neon-cyan text-[10px]">COPY PROMPT</span>.
+                While the LLM works, open <span class="arcade-font text-neon-yellow text-[10px]">ARCADE LOUNGE</span>.
+              </div>
+            </div>
+
+            <div class="flex gap-2 flex-wrap">
+              <button class="bg-pink-700 hover:bg-pink-600 text-white px-4 py-3 rounded font-bold uppercase shadow-neon-pink arcade-font text-[10px]"
+                onclick="finishOnboarding()">LET'S GO</button>
+              <button class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-4 py-3 rounded font-bold uppercase arcade-font text-[10px]"
+                onclick="openModal()">OPEN MANUAL</button>
+              <button class="bg-cyan-700 hover:bg-cyan-600 text-white px-4 py-3 rounded font-bold uppercase shadow-neon-cyan arcade-font text-[10px]"
+                onclick="openLounge()">ARCADE LOUNGE</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="text-center mb-6 mt-3 w-full max-w-5xl">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <div class="text-left">
+        <h1 class="text-3xl md:text-5xl text-white arcade-font titleGlow leading-tight">
+          PROMPT<br class="md:hidden"> ROULETTE
         </h1>
-        <div class="flex justify-center gap-4 text-[10px] font-mono uppercase tracking-widest text-pink-400 opacity-80 mt-4">
-            <span>Sound: <span id="soundStatus">ON</span> (Click Spin to Init)</span>
+        <div class="mt-2 text-[10px] font-mono uppercase tracking-widest text-pink-400 opacity-85">
+          <span>Spin → Copy → Generate → Play → Win</span>
+          <span class="ml-3 text-white/40">•</span>
+          <span class="ml-3">Sound: <span id="soundStatus">ON</span></span>
+          <span class="ml-3 text-white/40">•</span>
+          <span class="ml-3">Keys: <span class="text-neon-cyan">SPACE</span> Spin • <span class="text-neon-cyan">C</span> Copy • <span class="text-neon-cyan">?</span> Help</span>
         </div>
-    </header>
+      </div>
 
-    <main class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-8">
-        
-        <div class="md:col-span-2 space-y-8">
-            
-            <div class="glass-panel p-8 rounded-2xl relative overflow-hidden">
-                
-                <div class="flex flex-col md:flex-row items-center gap-8">
-                    
-                    <div class="shrink-0 flex flex-col items-center">
-                        <div class="roulette-container" id="spinTrigger" onclick="playRoulette()">
-                            <div class="roulette-wheel" id="wheelGraphic"></div>
-                            <div class="roulette-inner">
-                                <span class="text-white font-bold text-2xl tracking-widest arcade-font" id="btnText">SPIN</span>
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-gray-500 mt-4 uppercase tracking-widest">Click to Start</p>
-                    </div>
+      <div class="flex gap-2 flex-wrap justify-end">
+        <button class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-xs font-bold uppercase"
+          onclick="openLounge()">Arcade Lounge</button>
+        <button class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-xs font-bold uppercase"
+          onclick="openModal()">How it works</button>
+        <button class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-xs font-bold uppercase"
+          onclick="toggleSound()">Sound</button>
+      </div>
+    </div>
+  </header>
 
-                    <div class="flex-grow w-full space-y-5">
-                        
-                        <div class="group">
-                            <div class="flex justify-between text-[10px] text-neon-pink uppercase tracking-widest mb-1 px-1 font-bold">
-                                <span>Story Variable [X]</span>
-                                <span id="status-theme" class="opacity-0 transition-opacity">LOCKED</span>
-                            </div>
-                            <div class="bet-box p-4 rounded bg-black min-h-[4rem] flex items-center justify-center text-center" id="box-theme">
-                                <span class="slot-text text-gray-400" id="text-theme">INSERT COIN</span>
-                            </div>
-                        </div>
+  <!-- MAIN -->
+  <main class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-8">
 
-                        <div class="group">
-                            <div class="flex justify-between text-[10px] text-neon-cyan uppercase tracking-widest mb-1 px-1 font-bold">
-                                <span>Genre Variable [Y]</span>
-                                <span id="status-genre" class="opacity-0 transition-opacity">LOCKED</span>
-                            </div>
-                            <div class="bet-box p-4 rounded bg-black min-h-[4rem] flex items-center justify-center text-center" id="box-genre">
-                                <span class="slot-text text-gray-400" id="text-genre">TO PLAY</span>
-                            </div>
-                        </div>
+    <!-- LEFT: Wheel + Prompt -->
+    <div class="md:col-span-2 space-y-8">
 
-                        <div class="group">
-                            <div class="flex justify-between text-[10px] text-neon-pink uppercase tracking-widest mb-1 px-1 font-bold">
-                                <span>Twist Variable [Z]</span>
-                                <span id="status-twist" class="opacity-0 transition-opacity">LOCKED</span>
-                            </div>
-                            <div class="bet-box p-4 rounded bg-black min-h-[4rem] flex items-center justify-center text-center" id="box-twist">
-                                <span class="slot-text text-gray-400" id="text-twist">GOOD LUCK</span>
-                            </div>
-                        </div>
+      <!-- Wheel panel -->
+      <div class="glass-panel p-7 rounded-2xl">
+        <div class="flex flex-col md:flex-row items-center gap-8">
 
-                    </div>
-                </div>
+          <div class="shrink-0 flex flex-col items-center">
+            <div class="roulette-container" id="spinTrigger" onclick="playRoulette()" aria-label="Spin the roulette">
+              <div class="roulette-pointer" aria-hidden="true"></div>
+              <div class="roulette-wheel" id="wheelGraphic" aria-hidden="true"></div>
+              <div class="roulette-inner">
+                <span class="text-white font-bold text-xl tracking-widest arcade-font" id="btnText">SPIN</span>
+              </div>
             </div>
 
-            <div class="glass-panel p-6 rounded-xl relative">
-                <div class="flex justify-between items-center mb-2">
-                    <label class="text-pink-500 text-xs font-bold uppercase tracking-widest">The Prompt Payload</label>
-                    <button onclick="toggleEdit()" class="text-[10px] text-gray-500 hover:text-white uppercase">Edit Template</button>
-                </div>
-
-                <div id="templateArea" class="hidden mb-4">
-                    <textarea id="promptTemplate" class="w-full h-24 p-2 rounded text-xs bg-gray-900 text-gray-400" oninput="updatePromptDisplay()">Create an excellent zero-shot game in HTML/JS. Story: {X}. Genre: {Y}. Twist: {Z}. Use libraries like Kaboom.js, Phaser, or p5.js via CDN if helpful.</textarea>
-                </div>
-
-                <textarea id="finalPrompt" readonly class="w-full h-32 p-4 rounded bg-black text-cyan-400 font-mono text-sm border border-gray-800 resize-none focus:ring-0"></textarea>
-                
-                <button onclick="copyPrompt()" id="copyBtn" class="absolute bottom-6 right-6 bg-pink-600 hover:bg-pink-500 text-white px-4 py-2 text-xs font-bold uppercase rounded shadow-[0_0_10px_#ff00de] transition-all">
-                    Copy Prompt
-                </button>
+            <div class="mt-4 text-center">
+              <div id="progressLine" class="text-[10px] uppercase tracking-widest text-white/65">
+                <span class="pulseHint">Press SPACE or click SPIN</span>
+              </div>
+              <div class="mt-2 text-[10px] uppercase tracking-widest text-white/40">
+                Locks in order: <span class="text-neon-pink">X</span> → <span class="text-neon-cyan">Y</span> → <span class="text-neon-pink">Z</span>
+              </div>
             </div>
+          </div>
+
+          <!-- Slots -->
+          <div class="flex-grow w-full space-y-5">
+
+            <div class="group relative">
+              <div id="tipX" class="tip">This is <b>X</b>. It sets the story/world. You can click the box to “hold” it next spin.</div>
+              <div class="flex justify-between text-[10px] text-neon-pink uppercase tracking-widest mb-1 px-1 font-bold">
+                <span>Story Variable [X]</span>
+                <span id="status-theme" class="opacity-0 transition-opacity">LOCKED</span>
+              </div>
+              <div class="bet-box p-4 rounded bg-black min-h-[4rem] flex items-center justify-center text-center cursor-pointer"
+                   id="box-theme" onclick="toggleHold('theme')" title="Click to hold/unhold X on next spin">
+                <span class="slot-text text-gray-400" id="text-theme">INSERT COIN</span>
+              </div>
+              <div class="mt-1 text-[10px] uppercase tracking-widest text-white/45 px-1">
+                Click to HOLD: <span id="hold-theme" class="text-white/60">OFF</span>
+              </div>
+            </div>
+
+            <div class="group relative">
+              <div id="tipY" class="tip">This is <b>Y</b>. It defines the game genre/mechanics.</div>
+              <div class="flex justify-between text-[10px] text-neon-cyan uppercase tracking-widest mb-1 px-1 font-bold">
+                <span>Genre Variable [Y]</span>
+                <span id="status-genre" class="opacity-0 transition-opacity">LOCKED</span>
+              </div>
+              <div class="bet-box p-4 rounded bg-black min-h-[4rem] flex items-center justify-center text-center cursor-pointer"
+                   id="box-genre" onclick="toggleHold('genre')" title="Click to hold/unhold Y on next spin">
+                <span class="slot-text text-gray-400" id="text-genre">TO PLAY</span>
+              </div>
+              <div class="mt-1 text-[10px] uppercase tracking-widest text-white/45 px-1">
+                Click to HOLD: <span id="hold-genre" class="text-white/60">OFF</span>
+              </div>
+            </div>
+
+            <div class="group relative">
+              <div id="tipZ" class="tip">This is <b>Z</b>. The twist makes the game weird (in a good way).</div>
+              <div class="flex justify-between text-[10px] text-neon-pink uppercase tracking-widest mb-1 px-1 font-bold">
+                <span>Twist Variable [Z]</span>
+                <span id="status-twist" class="opacity-0 transition-opacity">LOCKED</span>
+              </div>
+              <div class="bet-box p-4 rounded bg-black min-h-[4rem] flex items-center justify-center text-center cursor-pointer"
+                   id="box-twist" onclick="toggleHold('twist')" title="Click to hold/unhold Z on next spin">
+                <span class="slot-text text-gray-400" id="text-twist">GOOD LUCK</span>
+              </div>
+              <div class="mt-1 text-[10px] uppercase tracking-widest text-white/45 px-1">
+                Click to HOLD: <span id="hold-twist" class="text-white/60">OFF</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompt panel -->
+      <div class="glass-panel p-6 rounded-xl">
+        <div class="flex justify-between items-center mb-2 gap-3 flex-wrap">
+          <div>
+            <label class="text-pink-500 text-xs font-bold uppercase tracking-widest">The Prompt Payload</label>
+            <div class="text-[10px] uppercase tracking-widest text-white/45 mt-1">
+              Paste into your LLM → ask for <span class="text-neon-cyan">ONE HTML FILE</span> only.
+            </div>
+          </div>
+
+          <div class="flex gap-2 flex-wrap">
+            <button onclick="toggleEdit()" class="text-[10px] text-gray-400 hover:text-white uppercase border border-white/10 px-3 py-2 rounded">Edit Template</button>
+            <button onclick="openLounge()" class="text-[10px] text-gray-400 hover:text-white uppercase border border-white/10 px-3 py-2 rounded">While waiting…</button>
+          </div>
         </div>
 
-        <div class="md:col-span-1">
-            <div class="glass-panel p-4 rounded-xl h-full flex flex-col border-t-2 border-t-pink-500">
-                <h2 class="text-sm text-white font-bold mb-4 text-center uppercase tracking-widest border-b border-white/10 pb-2">High Scores</h2>
-                
-                <div class="mb-4 flex gap-2">
-                    <input type="text" id="newPlayerName" placeholder="NAME" class="w-full p-2 rounded text-xs uppercase bg-black border-pink-900 focus:border-pink-500 text-pink-400">
-                    <button onclick="addPlayer()" class="bg-cyan-700 text-white px-3 rounded font-bold hover:bg-cyan-600 text-xs shadow-[0_0_5px_#00f3ff]">ADD</button>
-                </div>
-
-                <div id="playerList" class="flex-grow overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                    </div>
-
-                <button onclick="resetData()" class="mt-4 text-[9px] text-red-900 hover:text-red-500 uppercase text-center w-full">Reset Data</button>
-            </div>
+        <div id="templateArea" class="hidden mb-4">
+          <textarea id="promptTemplate" class="w-full h-28 p-3 rounded text-xs bg-black/70 text-gray-200 border border-white/10 resize-none"
+            oninput="updatePromptDisplay()"></textarea>
+          <div class="mt-2 text-[10px] uppercase tracking-widest text-white/50">
+            Placeholders: <span class="text-neon-cyan">{X}</span> <span class="text-neon-cyan">{Y}</span> <span class="text-neon-cyan">{Z}</span>
+          </div>
         </div>
 
-    </main>
+        <textarea id="finalPrompt" readonly
+          class="w-full h-36 p-4 rounded bg-black text-cyan-300 font-mono text-sm border border-gray-800 resize-none focus:ring-0"></textarea>
 
-    <script>
-        // --- AUDIO ENGINE (Web Audio API) ---
-        let audioCtx;
-        
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+        <div class="mt-3 flex gap-2 flex-wrap justify-end items-center">
+          <div id="copyTip" class="text-[10px] uppercase tracking-widest text-white/55 mr-auto"></div>
+          <button onclick="copyPrompt()" id="copyBtn"
+            class="bg-pink-600 hover:bg-pink-500 text-white px-4 py-2 text-xs font-bold uppercase rounded shadow-neon-pink transition-all">
+            Copy Prompt
+          </button>
+          <button onclick="copyAsMarkdown()" id="mdBtn"
+            class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-4 py-2 text-xs font-bold uppercase rounded transition-all">
+            Copy as MD
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: High Scores -->
+    <div class="md:col-span-1">
+      <div class="glass-panel p-4 rounded-xl h-full flex flex-col border-t-2 border-t-pink-500">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-sm text-white font-bold uppercase tracking-widest border-b border-white/10 pb-2 w-full text-center">
+            High Scores
+          </h2>
+        </div>
+
+        <div class="mt-3 grid grid-cols-1 gap-2">
+          <div class="flex gap-2">
+            <input type="text" id="newPlayerName" placeholder="NAME"
+              class="w-full p-2 rounded text-xs uppercase bg-black border border-pink-900 focus:border-pink-500 text-pink-300">
+            <button onclick="addPlayer()"
+              class="bg-cyan-700 text-white px-3 rounded font-bold hover:bg-cyan-600 text-xs shadow-neon-cyan">ADD</button>
+          </div>
+
+          <div class="flex gap-2">
+            <button onclick="nextPlayer()" class="w-full bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-xs uppercase">
+              Next Player
+            </button>
+            <button onclick="toggleAutoRotate()" id="autoRotateBtn" class="w-full bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-xs uppercase">
+              Auto: OFF
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-3 text-[10px] uppercase tracking-widest text-white/55 text-center">
+          Active player: <span id="activeName" class="text-neon-cyan">—</span>
+        </div>
+
+        <div id="playerList" class="mt-3 flex-grow overflow-y-auto space-y-2 pr-1"></div>
+
+        <div class="mt-3 grid grid-cols-2 gap-2">
+          <button onclick="exportData()" class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-[10px] uppercase">Export</button>
+          <button onclick="importData()" class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-[10px] uppercase">Import</button>
+        </div>
+
+        <button onclick="resetData()" class="mt-3 text-[9px] text-red-900 hover:text-red-500 uppercase text-center w-full">
+          Reset Data
+        </button>
+
+        <div class="mt-4 text-[10px] text-white/45 leading-relaxed">
+          <span class="text-neon-yellow">Tip:</span> While someone plays, others can open <b>Arcade Lounge</b> for mini-games & bingo.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <input id="fileImport" type="file" accept="application/json" class="hidden" />
+
+  <script>
+    // ==========================================================
+    // AUDIO ENGINE (Web Audio API) + SOUND TOGGLE
+    // ==========================================================
+    let audioCtx;
+    let soundOn = true;
+
+    function initAudio(){
+      if (!audioCtx){
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended'){
+        audioCtx.resume();
+      }
+    }
+
+    function toggleSound(){
+      soundOn = !soundOn;
+      document.getElementById('soundStatus').innerText = soundOn ? "ON" : "OFF";
+      localStorage.setItem("pra_soundOn", soundOn ? "1" : "0");
+      if (soundOn) initAudio();
+    }
+
+    function playSound(type){
+      if(!soundOn) return;
+      if(!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+
+      const playTone = (freq, wave, dur, gain=0.10) => {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = wave;
+        osc.frequency.value = freq;
+        osc.connect(g);
+        g.connect(audioCtx.destination);
+        g.gain.setValueAtTime(gain, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+        osc.start(now);
+        osc.stop(now + dur);
+      };
+
+      if(type === 'tick'){
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(900, now);
+        osc.frequency.exponentialRampToValueAtTime(120, now + 0.05);
+        gainNode.gain.setValueAtTime(0.05, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      } else if(type === 'lock'){
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(55, now + 0.28);
+        gainNode.gain.setValueAtTime(0.26, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+        osc.start(now);
+        osc.stop(now + 0.28);
+      } else if(type === 'win'){
+        playTone(440, 'sine', 0.22, 0.09);
+        setTimeout(()=> playTone(554, 'sine', 0.22, 0.09), 90);
+        setTimeout(()=> playTone(659, 'sine', 0.30, 0.10), 180);
+      } else if(type === 'error'){
+        playTone(140, 'square', 0.25, 0.08);
+      }
+    }
+
+    // ==========================================================
+    // DATA BANKS (expanded a bit)
+    // ==========================================================
+    const themes = [
+      "Customer Service for the Illuminati","Escaping a glitched VR headset","Sentient Roomba world domination",
+      "Game of Thrones Season 8 Rewrite","US Senate Fight Club","Karen vs The Manager of Space",
+      "Cyberpunk 2077 on Windows 95","Sauron's HR Department","Elon Musk accidentally colonizing the Sun",
+      "Dating Sim for Introverted Ghosts","Breaking Bad: Lego Edition","Zombie Apocalypse in IKEA",
+      "Influencer Apology Video Simulator","Donald Trump's Lemonade Stand","The Titanic but the Iceberg is the Hero",
+      "Succession: The Muppets","Shrek in the Metaverse","Gordon Ramsay Medieval Torture Judge",
+      "IRS Audit of Batman","Flat Earth Space Program","Mean Girls RPG","The Zoom Call That Never Ends",
+      "Jurassic Park with duck-sized dinos","Godzilla doing taxes","Spongebob noir detective",
+      "The Matrix on a Potato","Taylor Swift vs ChatGPT","Fast & Furious: Wheelchair Drift",
+      "Area 51 Raid Musical","Stranger Things HR Violation","Vegan Vampire Survival","Discord Admin Simulator",
+      "Git Merge Conflict Horror","Nic Cage stealing the Declaration again","DMV Line Simulator",
+      "Lord of the Rings but it's a delivery shift","Star Wars cantina band eviction crisis","Eurovision spellcasting showdown",
+      "A wizard school where spells are JavaScript","A courtroom where the jury is an algorithm"
+    ];
+
+    const genres = [
+      "Flappy Bird (Physics)","Text Adventure","Dating Sim","Tower Defense","Infinite Runner",
+      "Idle Clicker","Bullet Hell","Platformer","Match-3","Turn-Based RPG","Rhythm Game",
+      "Typing Speed Test","Survival Horror","Visual Novel","Card Battler","Snake Clone",
+      "Breakout","Farming Sim","Battle Royale (Text)","Physics Puzzle","Trivia Show",
+      "Metroidvania (Mini)","Pong Variant","Excel Sim","Tamagotchi","Walking Sim",
+      "Whack-a-Mole","Roguelike","Top-Down Racing","Tycoon Sim","QWOP Style",
+      "Courtroom cross-examination mini-game","Reigns-style swipe decisions","Puzzle-box escape room"
+    ];
+
+    const twists = [
+      "Controls reverse every 10s","Stop moving = Explode","Narrator lies to you","ASCII Graphics only",
+      "Play as the Villain trying to lose","Fake Blue Screen of Death on loss","Inputs cost money (Debt)",
+      "Inverted Gravity","Screen rotates 90deg randomly","Type 'Sorry' to reload","Invisible Enemies",
+      "Time moves only when you move","Speed doubles every minute","1 HP always","P2 is AI trying to kill you",
+      "Comic Sans Mandatory","Mouth-made Sound Effects","UI runs away from mouse","Control 2 players at once",
+      "Greyscale Mode","Glitch Horror Effects","Fake Pop-up Ads block view","Underwater Physics",
+      "Healing reduces Score","Friendly Fire Always On","Mouse Only (No Keyboard)","Jump inverts colors",
+      "Narrated by Snoop Dogg (Text)","Zero Friction Physics","The 'help' button gaslights you",
+      "Win by losing in a specific way"
+    ];
+
+    // ==========================================================
+    // ROULETTE LOGIC + HOLD (keep variables across spins)
+    // ==========================================================
+    let isSpinning = false;
+    let currentTheme = "", currentGenre = "", currentTwist = "";
+
+    const hold = { theme:false, genre:false, twist:false };
+
+    function getRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function setProgress(msg){
+      const el = document.getElementById('progressLine');
+      el.innerHTML = msg;
+      el.classList.remove("pulseHint");
+    }
+
+    function resetProgress(){
+      const el = document.getElementById('progressLine');
+      el.textContent = "Press SPACE or click SPIN";
+      el.classList.add("pulseHint");
+    }
+
+    function toggleHold(which){
+      hold[which] = !hold[which];
+      document.getElementById(`hold-${which}`).textContent = hold[which] ? "ON" : "OFF";
+      // small UI hint
+      const tipMap = {theme:"tipX", genre:"tipY", twist:"tipZ"};
+      const tipEl = document.getElementById(tipMap[which]);
+      tipEl.classList.add("showTip");
+      setTimeout(()=> tipEl.classList.remove("showTip"), 1700);
+      playSound(hold[which] ? 'lock' : 'tick');
+    }
+
+    function playRoulette(){
+      if (isSpinning) return;
+      initAudio();
+      isSpinning = true;
+
+      const wheel = document.getElementById('wheelGraphic');
+      const btnText = document.getElementById('btnText');
+      wheel.classList.add('is-spinning');
+      btnText.innerText = "RUN";
+
+      // Reset UI
+      resetUI();
+      setProgress(`<span class="text-white/70">Spinning… locking</span> <span class="text-neon-pink">X</span> <span class="text-white/60">→</span> <span class="text-neon-cyan">Y</span> <span class="text-white/60">→</span> <span class="text-neon-pink">Z</span>`);
+
+      // Spin loop
+      let cycleCount = 0;
+      const interval = setInterval(() => {
+        cycleCount++;
+
+        if(cycleCount < 20 && !hold.theme){ document.getElementById('text-theme').innerText = getRandom(themes); }
+        if(cycleCount < 45 && !hold.genre){ document.getElementById('text-genre').innerText = getRandom(genres); }
+        if(cycleCount < 70 && !hold.twist){ document.getElementById('text-twist').innerText = getRandom(twists); }
+
+        if (cycleCount % 2 === 0) playSound('tick');
+      }, 100);
+
+      // Stop 1: Theme
+      setTimeout(() => { finalizeSlot('theme', themes, 'locked-pink'); }, 2000);
+
+      // Stop 2: Genre
+      setTimeout(() => { finalizeSlot('genre', genres, 'locked-cyan'); }, 4500);
+
+      // Stop 3: Twist
+      setTimeout(() => {
+        clearInterval(interval);
+        finalizeSlot('twist', twists, 'locked-pink');
+
+        wheel.classList.remove('is-spinning');
+        btnText.innerText = "SPIN";
+        isSpinning = false;
+
+        updatePromptDisplay();
+        playSound('win');
+
+        // Nudge user: copying is the next obvious step
+        const copyTip = document.getElementById('copyTip');
+        copyTip.innerHTML = `Next: <span class="text-neon-cyan">COPY PROMPT</span> → paste into your LLM.`;
+        setTimeout(()=> copyTip.textContent = "", 4500);
+        setProgress(`<span class="text-neon-green">READY</span> • Copy the prompt and generate the game`);
+      }, 7000);
+    }
+
+    function resetUI(){
+      ['theme','genre','twist'].forEach(id => {
+        const box = document.getElementById(`box-${id}`);
+        const text = document.getElementById(`text-${id}`);
+        const status = document.getElementById(`status-${id}`);
+
+        box.classList.remove('locked-pink','locked-cyan');
+        text.classList.add('flicker');
+        status.classList.remove('opacity-100');
+        status.classList.add('opacity-0');
+      });
+    }
+
+    function finalizeSlot(type, array, colorClass){
+      // if held and already have a value, keep it
+      const held = hold[type];
+      const val = (held && (type==='theme'?currentTheme:type==='genre'?currentGenre:currentTwist)) || getRandom(array);
+
+      const textEl = document.getElementById(`text-${type}`);
+      const boxEl = document.getElementById(`box-${type}`);
+      const statusEl = document.getElementById(`status-${type}`);
+
+      textEl.innerText = val;
+      textEl.classList.remove('flicker');
+      boxEl.classList.add(colorClass);
+      statusEl.classList.remove('opacity-0');
+      statusEl.classList.add('opacity-100');
+
+      playSound('lock');
+
+      if(type === 'theme') currentTheme = val;
+      if(type === 'genre') currentGenre = val;
+      if(type === 'twist') currentTwist = val;
+    }
+
+    // ==========================================================
+    // PROMPT TEMPLATE + COPY
+    // ==========================================================
+    const defaultTemplate = `Create an excellent zero-shot game in a single HTML file (HTML/CSS/JS; no external assets required). The game must run offline in a browser.
+
+STORY/THEME: {X}
+GENRE/FORMAT: {Y}
+TWIST/MODIFIER: {Z}
+
+Hard requirements:
+- Fun within 10 seconds; playable in 2–5 minutes.
+- Clear goal, clear feedback, and a restart button.
+- Polished UI with animations and a sound toggle (simple WebAudio is fine).
+- Include short instructions + a “How to play” overlay.
+- Keyboard support.
+- Provide everything in one HTML code block only. No extra explanation.`;
+
+    function updatePromptDisplay(){
+      const template = document.getElementById('promptTemplate').value;
+      let final = template
+        .replace("{X}", `"${currentTheme}"`)
+        .replace("{Y}", `"${currentGenre}"`)
+        .replace("{Z}", `"${currentTwist}"`);
+
+      if(!currentTheme) final = "SPIN THE WHEEL TO GENERATE A PROMPT!";
+      document.getElementById('finalPrompt').value = final;
+    }
+
+    function toggleEdit(){
+      document.getElementById('templateArea').classList.toggle('hidden');
+    }
+
+    async function copyPrompt(){
+      const text = document.getElementById('finalPrompt').value;
+      if(!currentTheme) { playSound('error'); return; }
+      try{
+        await navigator.clipboard.writeText(text);
+        const btn = document.getElementById('copyBtn');
+        btn.innerText = "COPIED!";
+        btn.classList.add("bg-green-600");
+        setTimeout(() => { btn.innerText = "COPY PROMPT"; btn.classList.remove("bg-green-600"); }, 1400);
+      }catch(err){
+        playSound('error');
+      }
+    }
+
+    async function copyAsMarkdown(){
+      const text = document.getElementById('finalPrompt').value;
+      if(!currentTheme) { playSound('error'); return; }
+      try{
+        await navigator.clipboard.writeText("```text\n" + text + "\n```");
+        const btn = document.getElementById('mdBtn');
+        btn.innerText = "COPIED!";
+        setTimeout(() => { btn.innerText = "COPY AS MD"; }, 1400);
+      }catch(err){
+        playSound('error');
+      }
+    }
+
+    // ==========================================================
+    // HIGH SCORES (wins/losses + style points) with migration
+    // ==========================================================
+    const LS_PLAYERS = 'pra_players_v2';
+    let players = [];
+
+    let autoRotate = false;
+    let activeIndex = 0;
+
+    function loadPlayers(){
+      // Migration: old format was [{name, score}]
+      const old = JSON.parse(localStorage.getItem('pra_players')) || null;
+      const v2 = JSON.parse(localStorage.getItem(LS_PLAYERS)) || null;
+
+      if (v2 && Array.isArray(v2)){
+        players = v2;
+      } else if (old && Array.isArray(old)){
+        players = old.map(p => ({ name: p.name, wins: Math.max(0, p.score||0), losses: 0, style: 0 }));
+      } else {
+        players = [];
+      }
+
+      autoRotate = localStorage.getItem("pra_autoRotate") === "1";
+      activeIndex = parseInt(localStorage.getItem("pra_activeIndex") || "0", 10);
+      if (Number.isNaN(activeIndex)) activeIndex = 0;
+      if (activeIndex >= players.length) activeIndex = 0;
+    }
+
+    function savePlayers(){
+      localStorage.setItem(LS_PLAYERS, JSON.stringify(players));
+      localStorage.setItem("pra_autoRotate", autoRotate ? "1" : "0");
+      localStorage.setItem("pra_activeIndex", String(activeIndex));
+      renderLeaderboard();
+    }
+
+    function addPlayer(){
+      const input = document.getElementById('newPlayerName');
+      const name = (input.value || "").trim();
+      if (!name) return;
+      players.push({ name: name.toUpperCase(), wins: 0, losses: 0, style: 0 });
+      input.value = "";
+      activeIndex = players.length - 1;
+      savePlayers();
+    }
+
+    function setActive(idx){
+      activeIndex = idx;
+      savePlayers();
+    }
+
+    function nextPlayer(){
+      if (players.length === 0) return;
+      activeIndex = (activeIndex + 1) % players.length;
+      savePlayers();
+    }
+
+    function toggleAutoRotate(){
+      autoRotate = !autoRotate;
+      document.getElementById("autoRotateBtn").textContent = "Auto: " + (autoRotate ? "ON" : "OFF");
+      savePlayers();
+    }
+
+    function changeScore(index, kind, delta){
+      const p = players[index];
+      if (!p) return;
+
+      if (kind === "win") p.wins = Math.max(0, (p.wins||0) + delta);
+      if (kind === "loss") p.losses = Math.max(0, (p.losses||0) + delta);
+      if (kind === "style") p.style = Math.max(0, (p.style||0) + delta);
+
+      // sort by wins then winrate then style
+      players.sort((a,b) => {
+        const aw=a.wins||0, bw=b.wins||0;
+        if (bw !== aw) return bw - aw;
+        const ar = (a.wins||0) / Math.max(1, (a.wins||0)+(a.losses||0));
+        const br = (b.wins||0) / Math.max(1, (b.wins||0)+(b.losses||0));
+        if (br !== ar) return br - ar;
+        return (b.style||0) - (a.style||0);
+      });
+
+      // activeIndex becomes tricky after sort; keep active by name match
+      const activeName = document.getElementById("activeName").textContent;
+      const newIdx = players.findIndex(x => x.name === activeName);
+      if (newIdx >= 0) activeIndex = newIdx;
+
+      savePlayers();
+
+      if (autoRotate && kind === "win" && delta > 0) nextPlayer();
+      if (autoRotate && kind === "loss" && delta > 0) nextPlayer();
+    }
+
+    function renderLeaderboard(){
+      document.getElementById("autoRotateBtn").textContent = "Auto: " + (autoRotate ? "ON" : "OFF");
+
+      const list = document.getElementById('playerList');
+      list.innerHTML = "";
+
+      if (players.length === 0){
+        list.innerHTML = `<div class="text-center text-xs text-white/50 py-6">Add players to start tracking wins.</div>`;
+        document.getElementById("activeName").textContent = "—";
+        return;
+      }
+
+      if (activeIndex >= players.length) activeIndex = 0;
+      const active = players[activeIndex];
+      document.getElementById("activeName").textContent = active ? active.name : "—";
+
+      players.forEach((p, index) => {
+        const games = (p.wins||0) + (p.losses||0);
+        const wr = Math.round(((p.wins||0) / Math.max(1, games)) * 100);
+
+        const div = document.createElement('div');
+        const isActive = index === activeIndex;
+        div.className = "flex items-center justify-between bg-white/5 p-2 rounded border border-white/5 " +
+                        (isActive ? "ring-2 ring-cyan-400/40 shadow-neon-cyan" : "");
+        div.innerHTML = `
+          <button class="text-left flex items-center gap-2" onclick="setActive(${index})" title="Set active player">
+            <span class="text-pink-500 font-bold text-xs">#${index+1}</span>
+            <div>
+              <div class="font-bold text-xs text-cyan-300">${p.name}</div>
+              <div class="text-[10px] text-gray-400">
+                W:${p.wins||0} • L:${p.losses||0} • ${wr}% • Style:${p.style||0}
+              </div>
+            </div>
+          </button>
+
+          <div class="flex gap-1 items-center">
+            <button onclick="changeScore(${index}, 'win', 1)" class="w-9 h-7 bg-cyan-900 text-cyan-200 text-[10px] rounded hover:bg-cyan-600 font-bold uppercase" title="Win">+W</button>
+            <button onclick="changeScore(${index}, 'loss', 1)" class="w-9 h-7 bg-pink-900 text-pink-200 text-[10px] rounded hover:bg-pink-600 font-bold uppercase" title="Loss">+L</button>
+            <button onclick="changeScore(${index}, 'style', 1)" class="w-12 h-7 bg-yellow-900/60 text-yellow-200 text-[10px] rounded hover:bg-yellow-700/70 font-bold uppercase" title="Style point">+Style</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function exportData(){
+      const payload = {
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        players,
+        autoRotate,
+        activeIndex,
+        template: document.getElementById("promptTemplate").value || defaultTemplate,
+        soundOn
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "prompt-roulette-arcade.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
+    }
+
+    function importData(){
+      document.getElementById("fileImport").click();
+    }
+
+    document.getElementById("fileImport").addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const fr = new FileReader();
+      fr.onload = () => {
+        try{
+          const obj = JSON.parse(String(fr.result));
+          if (obj.players && Array.isArray(obj.players)) players = obj.players;
+          if (typeof obj.autoRotate === "boolean") autoRotate = obj.autoRotate;
+          if (typeof obj.activeIndex === "number") activeIndex = obj.activeIndex;
+          if (typeof obj.template === "string") document.getElementById("promptTemplate").value = obj.template;
+          if (typeof obj.soundOn === "boolean") soundOn = obj.soundOn;
+          document.getElementById('soundStatus').innerText = soundOn ? "ON" : "OFF";
+          savePlayers();
+          updatePromptDisplay();
+          toastFlash("Imported!");
+        }catch(err){
+          toastFlash("Import failed");
+          playSound('error');
         }
+      };
+      fr.readAsText(file);
+      e.target.value = "";
+    });
 
-        function playSound(type) {
-            if (!audioCtx) return;
-            
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            const now = audioCtx.currentTime;
+    function resetData(){
+      if(confirm("Clear local data (scores + settings)?")){
+        localStorage.removeItem('pra_players');
+        localStorage.removeItem(LS_PLAYERS);
+        localStorage.removeItem("pra_autoRotate");
+        localStorage.removeItem("pra_activeIndex");
+        localStorage.removeItem("pra_seen_tutorial");
+        localStorage.removeItem("pra_bingo");
+        localStorage.removeItem("pra_reactBest");
+        localStorage.removeItem("pra_timer");
+        location.reload();
+      }
+    }
 
-            if (type === 'tick') {
-                // High pitch short blip for spinning
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(800, now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
-                gainNode.gain.setValueAtTime(0.05, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-                osc.start(now);
-                osc.stop(now + 0.05);
-            } 
-            else if (type === 'lock') {
-                // Heavy impact sound for slot locking
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(200, now);
-                osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
-                gainNode.gain.setValueAtTime(0.3, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            }
-            else if (type === 'win') {
-                // Success chord
-                playTone(440, 'sine', 0.5); // A4
-                setTimeout(() => playTone(554, 'sine', 0.5), 100); // C#5
-                setTimeout(() => playTone(659, 'sine', 0.8), 200); // E5
-            }
+    // ==========================================================
+    // Simple toast (uses copyTip line)
+    // ==========================================================
+    function toastFlash(msg){
+      const copyTip = document.getElementById("copyTip");
+      copyTip.innerHTML = `<span class="text-neon-yellow">${msg}</span>`;
+      setTimeout(()=> copyTip.textContent = "", 2200);
+    }
+
+    // ==========================================================
+    // MODALS (Help + Lounge + Onboarding)
+    // ==========================================================
+    function openModal(){
+      const back = document.getElementById("modalBack");
+      back.style.display = "flex";
+      back.setAttribute("aria-hidden","false");
+    }
+    function closeModal(){
+      const back = document.getElementById("modalBack");
+      back.style.display = "none";
+      back.setAttribute("aria-hidden","true");
+    }
+
+    function openLounge(){
+      const back = document.getElementById("loungeBack");
+      back.style.display = "flex";
+      back.setAttribute("aria-hidden","false");
+      renderBingo();
+      renderReactionBest();
+      renderTimer();
+    }
+    function closeLounge(){
+      const back = document.getElementById("loungeBack");
+      back.style.display = "none";
+      back.setAttribute("aria-hidden","true");
+    }
+
+    function showOnboarding(){
+      document.getElementById("onboardBack").style.display = "flex";
+    }
+    function finishOnboarding(){
+      localStorage.setItem("pra_seen_tutorial","1");
+      document.getElementById("onboardBack").style.display = "none";
+    }
+
+    // close modals when clicking backdrop
+    ["modalBack","loungeBack","onboardBack"].forEach(id=>{
+      const el = document.getElementById(id);
+      el.addEventListener("click", (e)=>{
+        if (e.target === el){
+          if (id==="modalBack") closeModal();
+          if (id==="loungeBack") closeLounge();
+          if (id==="onboardBack") finishOnboarding();
         }
+      });
+    });
 
-        function playTone(freq, type, duration) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.value = freq;
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
+    // ==========================================================
+    // LOUNGE: Reaction test
+    // ==========================================================
+    let reactArmed = false;
+    let reactGo = false;
+    let reactStart = 0;
+    let reactTimer = null;
+
+    function renderReactionBest(){
+      const best = localStorage.getItem("pra_reactBest");
+      document.getElementById("reactBest").textContent = best ? (best + " ms") : "—";
+    }
+
+    function reactionClick(){
+      const stateEl = document.getElementById("reactState");
+      const timeEl = document.getElementById("reactTime");
+      const panel = document.getElementById("reactPanel");
+
+      if (!reactArmed){
+        reactArmed = true;
+        reactGo = false;
+        timeEl.textContent = "—";
+        stateEl.textContent = "WAIT…";
+        panel.style.borderColor = "rgba(255,255,255,0.18)";
+        panel.style.background = "rgba(0,0,0,0.35)";
+
+        const delay = 900 + Math.random()*1800;
+        clearTimeout(reactTimer);
+        reactTimer = setTimeout(()=>{
+          reactGo = true;
+          reactStart = performance.now();
+          stateEl.textContent = "NOW!";
+          panel.style.borderColor = "rgba(47,225,140,0.55)";
+          panel.style.background = "rgba(47,225,140,0.10)";
+        }, delay);
+
+        return;
+      }
+
+      // if armed but not go yet => false start
+      if (reactArmed && !reactGo){
+        clearTimeout(reactTimer);
+        reactArmed = false;
+        reactGo = false;
+        stateEl.textContent = "TOO SOON";
+        timeEl.textContent = "😈";
+        panel.style.borderColor = "rgba(255,77,109,0.55)";
+        panel.style.background = "rgba(255,77,109,0.10)";
+        playSound('error');
+        setTimeout(()=>{ stateEl.textContent="CLICK TO ARM"; timeEl.textContent="—"; panel.style.borderColor="rgba(255,255,255,0.10)"; panel.style.background="rgba(0,0,0,0.35)"; }, 900);
+        return;
+      }
+
+      // go -> measure
+      const t = Math.round(performance.now() - reactStart);
+      reactArmed = false;
+      reactGo = false;
+
+      stateEl.textContent = "NICE";
+      timeEl.textContent = t + " ms";
+      panel.style.borderColor = "rgba(0,243,255,0.55)";
+      panel.style.background = "rgba(0,243,255,0.10)";
+      playSound('win');
+
+      const best = parseInt(localStorage.getItem("pra_reactBest") || "0", 10);
+      if (!best || t < best){
+        localStorage.setItem("pra_reactBest", String(t));
+      }
+      renderReactionBest();
+
+      setTimeout(()=>{ stateEl.textContent="CLICK TO ARM"; panel.style.borderColor="rgba(255,255,255,0.10)"; panel.style.background="rgba(0,0,0,0.35)"; }, 900);
+    }
+
+    // ==========================================================
+    // LOUNGE: Build timer
+    // ==========================================================
+    let timer = { running:false, endAt:0, pausedAt:0, remaining:0, interval:null };
+
+    function fmtTime(sec){
+      sec = Math.max(0, Math.floor(sec));
+      const m = String(Math.floor(sec / 60)).padStart(1,'0');
+      const s = String(sec % 60).padStart(2,'0');
+      return `${m}:${s}`;
+    }
+
+    function startTimer(seconds){
+      timer.running = true;
+      timer.remaining = seconds;
+      timer.endAt = Date.now() + seconds*1000;
+      timer.pausedAt = 0;
+      persistTimer();
+      tickTimer();
+      toastFlash("Timer started");
+      playSound('tick');
+    }
+
+    function pauseTimer(){
+      if (!timer.running) return;
+      timer.running = false;
+      timer.pausedAt = Date.now();
+      timer.remaining = Math.max(0, Math.round((timer.endAt - Date.now())/1000));
+      persistTimer();
+      renderTimer();
+      toastFlash("Paused");
+    }
+
+    function stopTimer(){
+      timer.running = false;
+      timer.endAt = 0;
+      timer.pausedAt = 0;
+      timer.remaining = 0;
+      persistTimer();
+      renderTimer();
+      toastFlash("Stopped");
+    }
+
+    function persistTimer(){
+      localStorage.setItem("pra_timer", JSON.stringify({
+        running: timer.running,
+        endAt: timer.endAt,
+        pausedAt: timer.pausedAt,
+        remaining: timer.remaining
+      }));
+    }
+
+    function loadTimer(){
+      try{
+        const raw = localStorage.getItem("pra_timer");
+        if (!raw) return;
+        const t = JSON.parse(raw);
+        if (!t) return;
+        timer.running = !!t.running;
+        timer.endAt = t.endAt || 0;
+        timer.pausedAt = t.pausedAt || 0;
+        timer.remaining = t.remaining || 0;
+      }catch(e){}
+    }
+
+    function tickTimer(){
+      clearInterval(timer.interval);
+      timer.interval = setInterval(()=>{
+        renderTimer();
+        if (timer.running){
+          const left = Math.round((timer.endAt - Date.now())/1000);
+          if (left <= 0){
+            timer.running = false;
+            timer.remaining = 0;
+            persistTimer();
+            renderTimer();
+            toastFlash("TIME!");
+            playSound('win');
+          }
         }
+      }, 250);
+    }
 
-        // --- DATA BANKS ---
-        const themes = [
-            "Customer Service for the Illuminati", "Escaping a glitched VR headset", "Sentient Roomba world domination",
-            "Game of Thrones Season 8 Rewrite", "US Senate Fight Club", "Karen vs The Manager of Space", 
-            "Cyberpunk 2077 on Windows 95", "Sauron's HR Department", "Elon Musk accidentally colonizing the Sun", 
-            "Dating Sim for Introverted Ghosts", "Breaking Bad: Lego Edition", "Zombie Apocalypse in IKEA", 
-            "Influencer Apology Video Simulator", "Donald Trump's Lemonade Stand", "Harry Potter with Guns", 
-            "The Titanic but Iceberg is Hero", "Succession: The Muppets", "Shrek in the Metaverse", 
-            "Gordon Ramsay Medieval Torture Judge", "IRS Audit of Batman", "Flat Earth Space Program", 
-            "Mean Girls RPG", "The Zoom Call That Never Ends", "Jurassic Park with Duck-sized Dinos", 
-            "Godzilla doing Taxes", "Spongebob Noir Detective", "The Matrix on a Potato", 
-            "Taylor Swift vs ChatGPT", "Fast & Furious: Wheelchair Drift", "Area 51 Raid Musical", 
-            "Stranger Things HR Violation", "Vegan Vampire Survival", "Discord Admin Simulator",
-            "Git Merge Conflict Horror", "Nic Cage stealing Independence Declaration", "DMV Line Simulator"
-        ];
+    function renderTimer(){
+      const el = document.getElementById("timerDisplay");
+      if (!el) return;
 
-        const genres = [
-            "Flappy Bird (Physics)", "Text Adventure", "Dating Sim", "Tower Defense", "Infinite Runner", 
-            "Idle Clicker", "Bullet Hell", "Platformer", "Match-3", "Turn-Based RPG", "Rhythm Game", 
-            "Typing Speed Test", "Survival Horror", "Visual Novel", "Card Battler", "Snake Clone", 
-            "Breakout", "Farming Sim", "Battle Royale (Text)", "Physics Puzzle", "Trivia Show", 
-            "Metroidvania (Mini)", "Pong Variant", "Excel Sim", "Tamagotchi", "Walking Sim", 
-            "Whack-a-Mole", "Roguelike", "Top-Down Racing", "Tycoon Sim", "QWOP Style"
-        ];
+      if (timer.running){
+        const left = Math.max(0, Math.round((timer.endAt - Date.now())/1000));
+        el.textContent = fmtTime(left);
+      } else if (timer.remaining > 0){
+        el.textContent = fmtTime(timer.remaining);
+      } else {
+        el.textContent = "—:—";
+      }
+    }
 
-        const twists = [
-            "Controls reverse every 10s", "Stop moving = Explode", "Narrator lies to you", "ASCII Graphics only", 
-            "Play as the Villain trying to lose", "Fake Blue Screen of Death on loss", "Inputs cost money (Debt)", 
-            "Inverted Gravity", "Screen rotates 90deg randomly", "Type 'Sorry' to reload", "Invisible Enemies", 
-            "Time moves only when you move", "Speed doubles every minute", "1 HP always", "P2 is AI trying to kill you",
-            "Comic Sans Mandatory", "Mouth-made Sound Effects", "UI runs away from mouse", "Control 2 players at once", 
-            "Greyscale Mode", "Glitch Horror Effects", "Fake Browser History Reading", "Underwater Physics", 
-            "Healing reduces Score", "Friendly Fire Always On", "Fake Pop-up Ads block view", "Bad Procedural Generation",
-            "Mouse Only (No Keyboard)", "Jump inverts colors", "Narrated by Snoop Dogg (Text)", "Zero Friction Physics"
-        ];
+    // ==========================================================
+    // LOUNGE: Prompt Bingo
+    // ==========================================================
+    const bingoItems = [
+      "LLM forgets the rules","Game is too hard","Game is too easy","Needs restart","UI is weirdly good",
+      "Unexpectedly wholesome","Bug becomes a feature","Sound is cursed","Someone rage-quits"
+    ];
 
-        // --- ROULETTE LOGIC ---
+    function loadBingo(){
+      try{
+        const raw = localStorage.getItem("pra_bingo");
+        if (!raw) return Array(9).fill(false);
+        const a = JSON.parse(raw);
+        if (Array.isArray(a) && a.length === 9) return a;
+      }catch(e){}
+      return Array(9).fill(false);
+    }
 
-        let isSpinning = false;
-        let currentTheme = "", currentGenre = "", currentTwist = "";
+    function saveBingo(arr){
+      localStorage.setItem("pra_bingo", JSON.stringify(arr));
+    }
 
-        function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function renderBingo(){
+      const grid = document.getElementById("bingoGrid");
+      if (!grid) return;
+      const state = loadBingo();
+      grid.innerHTML = "";
 
-        function playRoulette() {
-            if (isSpinning) return;
-            initAudio(); // Trigger audio context
-            isSpinning = true;
-            
-            const wheel = document.getElementById('wheelGraphic');
-            const btnText = document.getElementById('btnText');
-            wheel.classList.add('is-spinning');
-            btnText.innerText = "running";
-            
-            // Reset
-            resetUI();
+      bingoItems.forEach((label, idx) => {
+        const on = state[idx];
+        const btn = document.createElement("button");
+        btn.className =
+          "text-left p-3 rounded border text-xs uppercase tracking-widest transition " +
+          (on
+            ? "border-cyan-400/50 bg-cyan-500/15 text-white shadow-neon-cyan"
+            : "border-white/10 bg-black/30 text-white/70 hover:bg-black/40");
+        btn.innerHTML = `<span class="arcade-font text-[9px]">${label}</span>`;
+        btn.onclick = () => {
+          state[idx] = !state[idx];
+          saveBingo(state);
+          renderBingo();
+          // check bingo (rows/cols/diags)
+          const lines = [
+            [0,1,2],[3,4,5],[6,7,8],
+            [0,3,6],[1,4,7],[2,5,8],
+            [0,4,8],[2,4,6]
+          ];
+          const bingo = lines.some(line => line.every(i => state[i]));
+          if (bingo) toastFlash("BINGO! Style point.");
+        };
+        grid.appendChild(btn);
+      });
+    }
 
-            // The Spin Loop
-            let cycleCount = 0;
-            const interval = setInterval(() => {
-                cycleCount++;
-                
-                // Only update text if the slot isn't locked yet
-                if(cycleCount < 20) { // Theme locks ~2s (20 * 100ms)
-                     document.getElementById('text-theme').innerText = getRandom(themes);
-                }
-                if(cycleCount < 45) { // Genre locks ~4.5s
-                    document.getElementById('text-genre').innerText = getRandom(genres);
-                }
-                if(cycleCount < 70) { // Twist locks ~7s
-                    document.getElementById('text-twist').innerText = getRandom(twists);
-                }
-                
-                // Play tick sound (less frequent so it doesn't sound like a drill)
-                if (cycleCount % 2 === 0) playSound('tick');
+    function resetBingo(){
+      saveBingo(Array(9).fill(false));
+      renderBingo();
+      toastFlash("Bingo reset");
+    }
 
-            }, 100);
+    // ==========================================================
+    // Boot + Hotkeys
+    // ==========================================================
+    function boot(){
+      // Load sound
+      const s = localStorage.getItem("pra_soundOn");
+      if (s === "0") soundOn = false;
+      document.getElementById('soundStatus').innerText = soundOn ? "ON" : "OFF";
 
-            // SCHEDULED STOPS
-            // Stop 1: Theme (2.0s)
-            setTimeout(() => {
-                finalizeSlot('theme', themes, 'locked-pink');
-            }, 2000);
+      // Template
+      const tpl = localStorage.getItem("pra_template") || defaultTemplate;
+      document.getElementById("promptTemplate").value = tpl;
 
-            // Stop 2: Genre (4.5s) - BIG DELAY
-            setTimeout(() => {
-                finalizeSlot('genre', genres, 'locked-cyan');
-            }, 4500);
+      // Players
+      loadPlayers();
+      renderLeaderboard();
 
-            // Stop 3: Twist (7.0s) - FINAL REVEAL
-            setTimeout(() => {
-                clearInterval(interval);
-                finalizeSlot('twist', twists, 'locked-pink');
-                
-                wheel.classList.remove('is-spinning');
-                btnText.innerText = "SPIN";
-                isSpinning = false;
-                updatePromptDisplay();
-                playSound('win');
-            }, 7000);
-        }
+      // Timer
+      loadTimer();
+      tickTimer();
+      renderTimer();
 
-        function resetUI() {
-            ['theme', 'genre', 'twist'].forEach(id => {
-                const box = document.getElementById(`box-${id}`);
-                const text = document.getElementById(`text-${id}`);
-                const status = document.getElementById(`status-${id}`);
-                
-                box.classList.remove('locked-pink', 'locked-cyan');
-                text.classList.add('flicker');
-                status.classList.remove('opacity-100');
-                status.classList.add('opacity-0');
-            });
-        }
+      // First-run tutorial
+      const seen = localStorage.getItem("pra_seen_tutorial") === "1";
+      if (!seen){
+        showOnboarding();
+      }
 
-        function finalizeSlot(type, array, colorClass) {
-            const val = getRandom(array);
-            const textEl = document.getElementById(`text-${type}`);
-            const boxEl = document.getElementById(`box-${type}`);
-            const statusEl = document.getElementById(`status-${type}`);
-            
-            textEl.innerText = val;
-            textEl.classList.remove('flicker');
-            boxEl.classList.add(colorClass);
-            statusEl.classList.remove('opacity-0');
-            statusEl.classList.add('opacity-100');
-            
-            // Heavy lock sound
-            playSound('lock');
-            
-            if(type === 'theme') currentTheme = val;
-            if(type === 'genre') currentGenre = val;
-            if(type === 'twist') currentTwist = val;
-        }
+      updatePromptDisplay();
+    }
 
-        function updatePromptDisplay() {
-            const template = document.getElementById('promptTemplate').value;
-            let final = template.replace("{X}", `"${currentTheme}"`)
-                                .replace("{Y}", `"${currentGenre}"`)
-                                .replace("{Z}", `"${currentTwist}"`);
-            
-            if(!currentTheme) final = "SPIN THE WHEEL TO GENERATE A PROMPT!";
-            document.getElementById('finalPrompt').value = final;
-        }
+    // Persist template changes
+    document.addEventListener("input", (e) => {
+      if (e.target && e.target.id === "promptTemplate"){
+        localStorage.setItem("pra_template", e.target.value);
+      }
+    });
 
-        function toggleEdit() { document.getElementById('templateArea').classList.toggle('hidden'); }
+    // Hotkeys
+    document.addEventListener("keydown", (e) => {
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      const typing = tag === "input" || tag === "textarea";
+      if (typing) return;
 
-        async function copyPrompt() {
-            const text = document.getElementById('finalPrompt').value;
-            if(!currentTheme) return;
-            try {
-                await navigator.clipboard.writeText(text);
-                const btn = document.getElementById('copyBtn');
-                btn.innerText = "COPIED TO CLIPBOARD!";
-                setTimeout(() => btn.innerText = "COPY PROMPT", 2000);
-            } catch (err) {}
-        }
+      if (e.key === " "){
+        e.preventDefault();
+        playRoulette();
+      } else if (e.key.toLowerCase() === "c"){
+        e.preventDefault();
+        copyPrompt();
+      } else if (e.key === "?"){
+        e.preventDefault();
+        openModal();
+      } else if (e.key.toLowerCase() === "l"){
+        e.preventDefault();
+        openLounge();
+      } else if (e.key === "Escape"){
+        closeModal();
+        closeLounge();
+        // don't force-close onboarding; let user click
+      }
+    });
 
-        // --- LEADERBOARD ---
-        let players = JSON.parse(localStorage.getItem('pra_players')) || [];
+    // expose some functions globally for onclick usage
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.openLounge = openLounge;
+    window.closeLounge = closeLounge;
+    window.finishOnboarding = finishOnboarding;
 
-        function savePlayers() {
-            localStorage.setItem('pra_players', JSON.stringify(players));
-            renderLeaderboard();
-        }
+    window.playRoulette = playRoulette;
+    window.toggleEdit = toggleEdit;
+    window.copyPrompt = copyPrompt;
+    window.copyAsMarkdown = copyAsMarkdown;
 
-        function addPlayer() {
-            const input = document.getElementById('newPlayerName');
-            const name = input.value.trim();
-            if (name) {
-                players.push({ name: name, score: 0 });
-                input.value = "";
-                savePlayers();
-            }
-        }
+    window.addPlayer = addPlayer;
+    window.nextPlayer = nextPlayer;
+    window.toggleAutoRotate = toggleAutoRotate;
+    window.changeScore = changeScore;
+    window.setActive = setActive;
+    window.exportData = exportData;
+    window.importData = importData;
+    window.resetData = resetData;
 
-        function changeScore(index, delta) {
-            players[index].score += delta;
-            players.sort((a, b) => b.score - a.score);
-            savePlayers();
-        }
+    window.toggleSound = toggleSound;
 
-        function renderLeaderboard() {
-            const list = document.getElementById('playerList');
-            list.innerHTML = "";
-            players.forEach((p, index) => {
-                const div = document.createElement('div');
-                div.className = "flex items-center justify-between bg-white/5 p-2 rounded border border-white/5";
-                div.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="text-pink-500 font-bold text-xs">#${index+1}</span>
-                        <div>
-                            <div class="font-bold text-xs text-cyan-300">${p.name}</div>
-                            <div class="text-[10px] text-gray-400">Wins: ${p.score}</div>
-                        </div>
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="changeScore(${index}, 1)" class="w-6 h-6 bg-cyan-900 text-cyan-200 text-xs rounded hover:bg-cyan-600 font-bold">+</button>
-                        <button onclick="changeScore(${index}, -1)" class="w-6 h-6 bg-pink-900 text-pink-200 text-xs rounded hover:bg-pink-600 font-bold">-</button>
-                    </div>
-                `;
-                list.appendChild(div);
-            });
-        }
+    window.reactionClick = reactionClick;
+    window.startTimer = startTimer;
+    window.pauseTimer = pauseTimer;
+    window.stopTimer = stopTimer;
 
-        function resetData() {
-            if(confirm("Clear table?")) { players = []; savePlayers(); }
-        }
+    window.resetBingo = resetBingo;
 
-        renderLeaderboard();
-    </script>
+    boot();
+  </script>
 </body>
 </html>
