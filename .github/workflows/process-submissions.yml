@@ -17,14 +17,6 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-
-    - name: Install dependencies
-      run: npm install slugify
-
     - name: Process submissions
       run: |
         # Find all JSON files in submissions directory (excluding README.md)
@@ -51,8 +43,8 @@ jobs:
             SUBMITTED=$(echo "$SUBMISSION" | jq -r '.submitted')
             HTML=$(echo "$SUBMISSION" | jq -r '.html')
 
-            # Create slugified filename
-            FILENAME=$(echo "$TITLE" | node -e "const slugify = require('slugify'); console.log(slugify(process.argv[1], { lower: true, strict: true }))" "$TITLE")
+            # Create slugified filename (lowercase, replace spaces/special chars with hyphens)
+            FILENAME=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//')
             HTML_FILE="games/${FILENAME}.html"
 
             # Write HTML to games directory
