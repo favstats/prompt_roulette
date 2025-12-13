@@ -371,68 +371,22 @@
   <div id="loungeBack" class="modalBack" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal">
       <div class="modalHd">
-        <div class="arcade-font text-white text-xs titleGlow">ARCADE LOUNGE • KILL TIME</div>
+        <div class="arcade-font text-white text-xs titleGlow">ARCADE LOUNGE • COMMUNITY GAMES</div>
         <button class="xbtn arcade-font" onclick="closeLounge()">CLOSE</button>
       </div>
-      <div class="modalBd grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Reaction -->
-        <div class="glass-panel rounded-xl p-4">
-          <div class="arcade-font text-xs text-neon-cyan">REACTION TEST</div>
-          <p class="text-xs text-white/70 mt-2">Click when the panel turns <span class="text-neon-green">GREEN</span>. Best time is saved locally.</p>
-          <div id="reactPanel" class="mt-3 pixelBox select-none cursor-pointer text-center py-8 border border-white/10"
-               onclick="reactionClick()">
-            <div id="reactState" class="arcade-font text-xs text-white/80">CLICK TO ARM</div>
-            <div id="reactTime" class="mt-3 bigNum text-white/90">—</div>
-            <div class="mt-2 text-xs text-white/60">Best: <span id="reactBest">—</span></div>
-          </div>
-        </div>
-
-        <!-- Build timer -->
-        <div class="glass-panel rounded-xl p-4">
-          <div class="arcade-font text-xs text-neon-pink">BUILD TIMER</div>
-          <p class="text-xs text-white/70 mt-2">Track time per player while LLM generates. Shows who's turn it is and how long they've been building.</p>
-          
-          <div class="mt-3 text-xs text-white/60 mb-2">
-            Current player: <span id="timerPlayerName" class="text-neon-cyan font-bold">—</span>
-          </div>
-
-          <div class="mt-3 grid grid-cols-3 gap-2">
-            <button class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-pink"
-              onclick="startPlayerTimer(120)">2:00</button>
-            <button class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-pink"
-              onclick="startPlayerTimer(180)">3:00</button>
-            <button class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-2 rounded text-xs font-bold uppercase shadow-neon-pink"
-              onclick="startPlayerTimer(300)">5:00</button>
-          </div>
-
-          <div class="mt-4 pixelBox text-center">
-            <div class="text-xs text-white/65 uppercase tracking-widest">Time left</div>
-            <div id="timerDisplay" class="bigNum text-neon-yellow mt-2">—:—</div>
-            <div class="mt-3 flex gap-2 justify-center">
-              <button class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-xs uppercase"
-                onclick="pauseTimer()">Pause</button>
-              <button class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-3 py-2 rounded text-xs uppercase"
-                onclick="stopTimer()">Stop</button>
-            </div>
-          </div>
-
-          <div class="mt-3 text-xs text-white/70">
-            Bonus: when the timer ends, you can award <span class="text-neon-yellow">+1 “style point”</span> to whoever kept the room entertained.
-          </div>
-        </div>
-
+      <div class="modalBd">
         <!-- Community Games -->
-        <div class="glass-panel rounded-xl p-4 md:col-span-2">
+        <div class="glass-panel rounded-xl p-4">
           <div class="flex items-center justify-between mb-3">
-            <div class="arcade-font text-xs text-neon-yellow">COMMUNITY GAMES</div>
-            <div class="flex gap-2">
-              <button onclick="refreshCommunityGames()" class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-2 py-1 rounded text-[10px] uppercase">Refresh</button>
+            <div class="arcade-font text-xs text-neon-yellow">GAME LIBRARY</div>
+            <div class="flex gap-2 items-center">
+              <input type="text" id="gameSearch" placeholder="Search games..." class="bg-black/60 border border-white/10 text-white px-3 py-1 rounded text-xs w-48" oninput="filterCommunityGames()">
               <button onclick="showSubmitGameModal()" class="bg-pink-700 hover:bg-pink-600 text-white px-3 py-1 rounded text-xs font-bold uppercase shadow-neon-pink">Submit Game</button>
             </div>
           </div>
-          <p class="text-xs text-white/70 mb-3">Games created by the community using Prompt Roulette</p>
-          <div id="communityGamesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
-            <div class="text-xs text-white/50 text-center py-4">Loading games...</div>
+          <p class="text-xs text-white/70 mb-3">Browse and play games created by the community using Prompt Roulette</p>
+          <div id="communityGamesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
+            <div class="text-xs text-white/50 text-center py-4 col-span-full">Loading games...</div>
           </div>
         </div>
 
@@ -465,12 +419,6 @@
               class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
           </div>
 
-          <div>
-            <label class="text-xs text-white/70 uppercase tracking-widest">Game URL *</label>
-            <input type="url" id="submitGameURL" placeholder="https://favstats.github.io/prompt_roulette/games/your-game.html" 
-              class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
-            <div class="text-[10px] text-white/50 mt-1">Use GitHub Pages URL format: https://favstats.github.io/prompt_roulette/games/filename.html</div>
-          </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -2292,10 +2240,7 @@ Recommended libraries (use CDN links):
       const back = document.getElementById("loungeBack");
       back.style.display = "flex";
       back.setAttribute("aria-hidden","false");
-      renderReactionBest();
-      renderTimer();
-      updateTimerPlayerName();
-      renderCommunityGames(); // Render games when lounge opens
+      loadCommunityGames(); // Load and render games when lounge opens
     }
     function closeLounge(){
       const back = document.getElementById("loungeBack");
@@ -2373,190 +2318,6 @@ Recommended libraries (use CDN links):
       });
     });
 
-    // ==========================================================
-    // LOUNGE: Reaction test
-    // ==========================================================
-    let reactArmed = false;
-    let reactGo = false;
-    let reactStart = 0;
-    let reactTimer = null;
-
-    function renderReactionBest(){
-      const best = localStorage.getItem("pra_reactBest");
-      document.getElementById("reactBest").textContent = best ? (best + " ms") : "—";
-    }
-
-    function reactionClick(){
-      const stateEl = document.getElementById("reactState");
-      const timeEl = document.getElementById("reactTime");
-      const panel = document.getElementById("reactPanel");
-
-      if (!reactArmed){
-        reactArmed = true;
-        reactGo = false;
-        timeEl.textContent = "—";
-        stateEl.textContent = "WAIT…";
-        panel.style.borderColor = "rgba(255,255,255,0.18)";
-        panel.style.background = "rgba(0,0,0,0.35)";
-
-        const delay = 900 + Math.random()*1800;
-        clearTimeout(reactTimer);
-        reactTimer = setTimeout(()=>{
-          reactGo = true;
-          reactStart = performance.now();
-          stateEl.textContent = "NOW!";
-          panel.style.borderColor = "rgba(47,225,140,0.55)";
-          panel.style.background = "rgba(47,225,140,0.10)";
-        }, delay);
-
-        return;
-      }
-
-      // if armed but not go yet => false start
-      if (reactArmed && !reactGo){
-        clearTimeout(reactTimer);
-        reactArmed = false;
-        reactGo = false;
-        stateEl.textContent = "TOO SOON";
-        timeEl.textContent = "😈";
-        panel.style.borderColor = "rgba(255,77,109,0.55)";
-        panel.style.background = "rgba(255,77,109,0.10)";
-        playSound('error');
-        setTimeout(()=>{ stateEl.textContent="CLICK TO ARM"; timeEl.textContent="—"; panel.style.borderColor="rgba(255,255,255,0.10)"; panel.style.background="rgba(0,0,0,0.35)"; }, 900);
-        return;
-      }
-
-      // go -> measure
-      const t = Math.round(performance.now() - reactStart);
-      reactArmed = false;
-      reactGo = false;
-
-      stateEl.textContent = "NICE";
-      timeEl.textContent = t + " ms";
-      panel.style.borderColor = "rgba(0,243,255,0.55)";
-      panel.style.background = "rgba(0,243,255,0.10)";
-      playSound('win');
-
-      const best = parseInt(localStorage.getItem("pra_reactBest") || "0", 10);
-      if (!best || t < best){
-        localStorage.setItem("pra_reactBest", String(t));
-      }
-      renderReactionBest();
-
-      setTimeout(()=>{ stateEl.textContent="CLICK TO ARM"; panel.style.borderColor="rgba(255,255,255,0.10)"; panel.style.background="rgba(0,0,0,0.35)"; }, 900);
-    }
-
-    // ==========================================================
-    // LOUNGE: Build timer
-    // ==========================================================
-    let timer = { running:false, endAt:0, pausedAt:0, remaining:0, interval:null };
-
-    function fmtTime(sec){
-      sec = Math.max(0, Math.floor(sec));
-      const m = String(Math.floor(sec / 60)).padStart(1,'0');
-      const s = String(sec % 60).padStart(2,'0');
-      return `${m}:${s}`;
-    }
-
-    function startTimer(seconds){
-      timer.running = true;
-      timer.remaining = seconds;
-      timer.endAt = Date.now() + seconds*1000;
-      timer.pausedAt = 0;
-      persistTimer();
-      tickTimer();
-      updateTimerPlayerName();
-      toastFlash("Timer started");
-      playSound('tick');
-    }
-
-    function startPlayerTimer(seconds){
-      startTimer(seconds);
-    }
-
-    function updateTimerPlayerName(){
-      const active = players[activeIndex];
-      const nameEl = document.getElementById('timerPlayerName');
-      if (nameEl && active) {
-        nameEl.textContent = active.name;
-      } else if (nameEl) {
-        nameEl.textContent = "—";
-      }
-    }
-
-    function pauseTimer(){
-      if (!timer.running) return;
-      timer.running = false;
-      timer.pausedAt = Date.now();
-      timer.remaining = Math.max(0, Math.round((timer.endAt - Date.now())/1000));
-      persistTimer();
-      renderTimer();
-      toastFlash("Paused");
-    }
-
-    function stopTimer(){
-      timer.running = false;
-      timer.endAt = 0;
-      timer.pausedAt = 0;
-      timer.remaining = 0;
-      persistTimer();
-      renderTimer();
-      toastFlash("Stopped");
-    }
-
-    function persistTimer(){
-      localStorage.setItem("pra_timer", JSON.stringify({
-        running: timer.running,
-        endAt: timer.endAt,
-        pausedAt: timer.pausedAt,
-        remaining: timer.remaining
-      }));
-    }
-
-    function loadTimer(){
-      try{
-        const raw = localStorage.getItem("pra_timer");
-        if (!raw) return;
-        const t = JSON.parse(raw);
-        if (!t) return;
-        timer.running = !!t.running;
-        timer.endAt = t.endAt || 0;
-        timer.pausedAt = t.pausedAt || 0;
-        timer.remaining = t.remaining || 0;
-      }catch(e){}
-    }
-
-    function tickTimer(){
-      clearInterval(timer.interval);
-      timer.interval = setInterval(()=>{
-        renderTimer();
-        if (timer.running){
-          const left = Math.round((timer.endAt - Date.now())/1000);
-          if (left <= 0){
-            timer.running = false;
-            timer.remaining = 0;
-            persistTimer();
-            renderTimer();
-            toastFlash("TIME!");
-            playSound('win');
-          }
-        }
-      }, 250);
-    }
-
-    function renderTimer(){
-      const el = document.getElementById("timerDisplay");
-      if (!el) return;
-
-      if (timer.running){
-        const left = Math.max(0, Math.round((timer.endAt - Date.now())/1000));
-        el.textContent = fmtTime(left);
-      } else if (timer.remaining > 0){
-        el.textContent = fmtTime(timer.remaining);
-      } else {
-        el.textContent = "—:—";
-      }
-    }
 
     // ==========================================================
     // LOUNGE: Prompt Bingo
@@ -2621,23 +2382,26 @@ Recommended libraries (use CDN links):
     // ==========================================================
     // COMMUNITY GAMES FUNCTIONS
     // ==========================================================
-    function renderCommunityGames() {
+    function renderCommunityGames(gamesToShow = null) {
       const container = document.getElementById('communityGamesList');
       if (!container) return;
 
-      if (communityGames.length === 0) {
-        container.innerHTML = '<div class="text-xs text-white/50 text-center py-4 md:col-span-3">No games submitted yet. Be the first!</div>';
+      const games = gamesToShow || communityGames;
+
+      if (games.length === 0) {
+        const message = gamesToShow ? 'No games match your search.' : 'No games submitted yet. Be the first!';
+        container.innerHTML = `<div class="text-xs text-white/50 text-center py-4 col-span-full">${message}</div>`;
         return;
       }
 
-      container.innerHTML = communityGames.map(game => {
+      container.innerHTML = games.map(game => {
         const difficultyColors = {
           normal: 'text-green-300 bg-green-900/30 border-green-500/50',
           chaos: 'text-yellow-300 bg-yellow-900/30 border-yellow-500/50',
           brainrot: 'text-pink-300 bg-pink-900/30 border-pink-500/50'
         };
         const diffColor = difficultyColors[game.difficulty] || difficultyColors.normal;
-        
+
         return `
           <div class="glass-panel rounded-xl p-3 border border-white/10">
             <div class="flex items-start justify-between mb-2">
@@ -2660,14 +2424,32 @@ Recommended libraries (use CDN links):
       }).join('');
     }
 
-    function refreshCommunityGames() {
+    function loadCommunityGames() {
       loadDataFromJSON().then(() => {
         renderCommunityGames();
-        toastFlash("Games refreshed!");
       }).catch(err => {
-        console.warn('Failed to refresh games', err);
-        toastFlash("Failed to refresh games");
+        console.warn('Failed to load games', err);
+        renderCommunityGames(); // Render with whatever we have
       });
+    }
+
+    function filterCommunityGames() {
+      const searchTerm = document.getElementById('gameSearch').value.toLowerCase().trim();
+      if (!searchTerm) {
+        renderCommunityGames();
+        return;
+      }
+
+      const filteredGames = communityGames.filter(game =>
+        game.title.toLowerCase().includes(searchTerm) ||
+        game.author.toLowerCase().includes(searchTerm) ||
+        (game.description && game.description.toLowerCase().includes(searchTerm)) ||
+        (game.theme && game.theme.toLowerCase().includes(searchTerm)) ||
+        (game.genre && game.genre.toLowerCase().includes(searchTerm)) ||
+        (game.twist && game.twist.toLowerCase().includes(searchTerm))
+      );
+
+      renderCommunityGames(filteredGames);
     }
 
     function escapeHtml(text) {
@@ -2724,10 +2506,9 @@ Recommended libraries (use CDN links):
       const gameHTML = htmlEl ? htmlEl.value.trim() : '';
       
       console.log('HTML length:', gameHTML.length);
-      console.log('HTML preview:', gameHTML.substring(0, 100));
       
       if (!gameHTML || gameHTML.length < 50) {
-        toastFlash("Please paste your complete game HTML code! (At least 50 characters)");
+        toastFlash("Please paste your complete game HTML code!");
         playSound('error');
         return;
       }
@@ -2735,191 +2516,96 @@ Recommended libraries (use CDN links):
       // Get form fields
       const title = document.getElementById('submitGameTitle').value.trim();
       const author = document.getElementById('submitGameAuthor').value.trim();
-      const url = document.getElementById('submitGameURL').value.trim();
       const theme = document.getElementById('submitGameTheme').value.trim();
       const genre = document.getElementById('submitGameGenre').value.trim();
       const twist = document.getElementById('submitGameTwist').value.trim();
       const difficulty = document.getElementById('submitGameDifficulty').value;
       const description = document.getElementById('submitGameDescription').value.trim();
 
-      if (!title || !author || !url) {
-        toastFlash("Please fill in required fields (Title, Author, URL)");
+      if (!title || !author) {
+        toastFlash("Please fill in Title and Author");
         playSound('error');
         return;
       }
 
-      // Validate URL
-      try {
-        new URL(url);
-      } catch (e) {
-        toastFlash("Please enter a valid URL");
-        playSound('error');
-        return;
-      }
-
-      // Create game object for JSON snippet
-      const gameData = {
+      // Create complete game JSON with everything included
+      const completeGameData = {
         title,
         author,
-        url,
         theme: theme || currentTheme || '',
         genre: genre || currentGenre || '',
         twist: twist || currentTwist || '',
         difficulty,
         description: description || '',
-        submitted: new Date().toISOString().split('T')[0]
+        submitted: new Date().toISOString().split('T')[0],
+        html: gameHTML
       };
 
-      // Generate JSON snippet for games.json
-      const jsonSnippet = JSON.stringify(gameData, null, 2);
+      // Generate complete JSON string
+      const completeJson = JSON.stringify(completeGameData, null, 2);
       
-      // Generate filename suggestion
-      const filename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.html`;
-      const filepath = `games/${filename}`;
+      // Generate filename for submission
+      const filename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.json`;
+      const filepath = `submissions/${filename}`;
       
-      // GitHub's URL-based file creation has length limits (~2000 chars)
-      // For larger files, we'll use a different approach: create issue with HTML in body
-      // and provide a link to create the file manually
+      // GitHub file creation URL
+      const fileUrl = `https://github.com/${GITHUB_REPO.user}/${GITHUB_REPO.repo}/new/main?filename=${encodeURIComponent(filepath)}`;
       
-      const MAX_URL_LENGTH = 2000; // Conservative limit
-      const encodedHTML = encodeURIComponent(gameHTML);
-      const baseUrl = `https://github.com/${GITHUB_REPO.user}/${GITHUB_REPO.repo}/new/main?filename=${encodeURIComponent(filepath)}`;
-      const fullUrlWithValue = `${baseUrl}&value=${encodedHTML}`;
+      console.log('Complete JSON length:', completeJson.length);
+      console.log('Submission path:', filepath);
       
-      // Create PR body template with instructions
-      const prBody = `## Submit Game: ${title}
-
-**Author:** ${author}
-**URL:** ${url}
-**Difficulty:** ${difficulty}
-
-### Game Details
-${description ? `**Description:** ${description}\n\n` : ''}
-**Theme:** ${theme || 'N/A'}
-**Genre:** ${genre || 'N/A'}
-**Twist:** ${twist || 'N/A'}
-
-### 📝 Next Steps
-
-1. **Create HTML file:** \`${filepath}\`
-2. **Update games.json:** Add this entry to the \`games\` array:
-
-\`\`\`json
-${jsonSnippet}
-\`\`\`
-
-**Instructions:**
-- Create the HTML file in \`games/\` folder
-- Add the JSON entry above to \`games.json\`
-- Commit both changes and create PR`;
-
-      console.log('URL length:', fullUrlWithValue.length);
-      console.log('GITHUB_REPO:', GITHUB_REPO);
-      
-      toastFlash("Preparing submission...");
-      
-      // Copy HTML to clipboard first
+      // Copy complete JSON to clipboard
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(gameHTML).then(() => {
-          console.log('HTML copied to clipboard');
+        navigator.clipboard.writeText(completeJson).then(() => {
+          console.log('Complete game JSON copied to clipboard');
+          toastFlash("Game JSON copied! Opening GitHub...");
           
-          // Also copy JSON
-          navigator.clipboard.writeText(jsonSnippet).then(() => {
-            console.log('JSON copied to clipboard');
-          });
-          
-          // Try to open GitHub file creation
-          // If URL is too long, we'll use a simpler approach
-          let fileWin = null;
-          
-          if (fullUrlWithValue.length < MAX_URL_LENGTH) {
-            // URL is short enough, try direct file creation
-            try {
-              fileWin = window.open(fullUrlWithValue, '_blank', 'noopener,noreferrer');
-              console.log('Opened file creation URL');
-            } catch (e) {
-              console.error('Error opening URL:', e);
-            }
-          }
-          
-          if (!fileWin || fileWin.closed) {
-            // URL too long or popup blocked - use alternative approach
-            console.log('Using alternative approach - opening new file page without content');
-            
-            // Open the "new file" page without pre-filled content
-            // HTML is already in clipboard, user can paste it
-            const simpleFileUrl = baseUrl;
-            fileWin = window.open(simpleFileUrl, '_blank', 'noopener,noreferrer');
+          // Open GitHub file creation page
+          try {
+            const fileWin = window.open(fileUrl, '_blank', 'noopener,noreferrer');
             
             if (fileWin) {
               setTimeout(() => {
-                toastFlash("HTML copied! Paste it in the form that opened.");
-                alert(`✅ HTML code copied to clipboard!\n✅ File creation page opened\n\nNext steps:\n1. Paste HTML in the form (already copied)\n2. Commit the file\n3. Edit games.json (JSON also copied to clipboard)\n4. Create PR`);
-                
-                console.log('=== SUBMISSION INSTRUCTIONS ===');
-                console.log('1. HTML is in clipboard - paste it in the form');
-                console.log('2. Commit the file');
-                console.log('3. Edit games.json and paste JSON entry:');
-                console.log(jsonSnippet);
-                console.log('4. Create PR with this description:');
-                console.log(prBody);
-              }, 1000);
+                toastFlash("Paste the JSON and commit!");
+                alert(`Game JSON copied to clipboard!\n\nSteps:\n1. Paste the JSON in the form\n2. Commit the file\n3. Create a Pull Request\n\nThe maintainer will process your submission!`);
+              }, 500);
             } else {
-              // Popup blocked completely
-              fallbackToInstructions(title, author, url, theme, genre, twist, difficulty, description, gameHTML, jsonSnippet, filename, filepath, baseUrl, prBody);
-            }
-          } else {
-            // Successfully opened with pre-filled content
-            setTimeout(() => {
-              toastFlash("File form opened! HTML pre-filled.");
+              // Popup blocked
+              toastFlash("Popup blocked! JSON copied - see console.");
               console.log('=== SUBMISSION INSTRUCTIONS ===');
-              console.log('1. HTML file is pre-filled - commit it');
-              console.log('2. Edit games.json and add JSON entry:');
-              console.log(jsonSnippet);
-              console.log('3. Create PR with description:');
-              console.log(prBody);
-            }, 1000);
+              console.log('1. Go to:', fileUrl);
+              console.log('2. Paste this JSON:');
+              console.log(completeJson);
+              alert(`Popup blocked!\n\n1. Go to: ${fileUrl}\n2. Paste the JSON (already copied)\n3. Commit and create PR`);
+            }
+          } catch (e) {
+            console.error('Error opening GitHub:', e);
+            toastFlash("Error! JSON copied - see console.");
+            console.log('Go to:', fileUrl);
+            console.log('Paste this JSON:', completeJson);
+            alert(`Error opening GitHub.\n\n1. Go to: ${fileUrl}\n2. Paste the JSON (copied to clipboard)`);
           }
         }).catch(err => {
-          console.error('Clipboard copy failed:', err);
-          toastFlash("Error copying to clipboard. Check console.");
-          fallbackToInstructions(title, author, url, theme, genre, twist, difficulty, description, gameHTML, jsonSnippet, filename, filepath, baseUrl, prBody);
+          console.error('Clipboard error:', err);
+          toastFlash("Clipboard error! See console.");
+          console.log('Copy this JSON manually:');
+          console.log(completeJson);
+          console.log('Then go to:', fileUrl);
         });
       } else {
         // No clipboard API
-        console.log('No clipboard API available');
-        fallbackToInstructions(title, author, url, theme, genre, twist, difficulty, description, gameHTML, jsonSnippet, filename, filepath, baseUrl, prBody);
+        toastFlash("Copy JSON from console!");
+        console.log('=== COPY THIS JSON ===');
+        console.log(completeJson);
+        console.log('Then go to:', fileUrl);
+        alert(`No clipboard access.\n\nCopy the JSON from the browser console (F12)\nThen go to: ${fileUrl}`);
       }
       
       closeSubmitGameModal();
     }
-    
-    function fallbackToInstructions(title, author, url, theme, genre, twist, difficulty, description, gameHTML, jsonSnippet, filename, filepath, fileUrl, prBody) {
-      // Fallback: Show all instructions
-      toastFlash("Popup blocked! Check console for instructions.");
-      
-      console.log('=== GAME SUBMISSION ===');
-      console.log('1. Go to:', fileUrl);
-      console.log('2. HTML is in clipboard - paste it in the form');
-      console.log('3. Edit games.json and add this entry:');
-      console.log(jsonSnippet);
-      console.log('4. Use this PR description:');
-      console.log(prBody);
-      
-      // Copy HTML and JSON to clipboard
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(gameHTML).then(() => {
-          navigator.clipboard.writeText(jsonSnippet);
-        });
-      }
-      
-      setTimeout(() => {
-        alert(`Popup blocked. Please:\n\n1. Go to: ${fileUrl}\n2. HTML is in clipboard - paste it\n3. Edit games.json (JSON also in clipboard)\n4. Create PR with description shown in console`);
-      }, 500);
-    }
 
     // Expose functions globally
-    window.refreshCommunityGames = refreshCommunityGames;
+    window.loadCommunityGames = loadCommunityGames;
     window.showSubmitGameModal = showSubmitGameModal;
     window.closeSubmitGameModal = closeSubmitGameModal;
     window.generateGamePR = generateGamePR;
@@ -3045,10 +2731,6 @@ ${jsonSnippet}
 
     window.toggleSound = toggleSound;
 
-    window.reactionClick = reactionClick;
-    window.startTimer = startTimer;
-    window.pauseTimer = pauseTimer;
-    window.stopTimer = stopTimer;
 
     window.resetBingo = resetBingo;
 
@@ -3202,7 +2884,6 @@ ${jsonSnippet}
     window.pauseGrind = pauseGrind;
     window.stopGrind = stopGrind;
     window.setDifficulty = setDifficulty;
-    window.startPlayerTimer = startPlayerTimer;
 
     boot();
   </script>
