@@ -10,14 +10,10 @@
       "url": "https://favstats.github.io/prompt_roulette/games/cages-declaration-run.html",
       "description": "Dodge security lasers as Nic Cage to steal the Declaration of Independence. Bullet hell gameplay with Comic Sans MS font.",
       "submitted": "2024-01-01"
-    }
-  ]
-}
-
     },
     {
       "title": "LaughTrack.exe",
-      "author": "favstats", 
+      "author": "favstats",
       "theme": "You're a robot learning to be human by watching sitcoms",
       "genre": "Pong Variant",
       "twist": "Lives are currency",
