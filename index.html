@@ -699,7 +699,7 @@
           </div>
         </div>
 
-        <div id="templateArea" class="hidden mb-4">
+        <div id="templateArea" class="mb-4">
           <textarea id="promptTemplate" class="w-full h-28 p-3 rounded text-xs bg-black/70 text-gray-200 border border-white/10 resize-none"
             oninput="updatePromptDisplay()"></textarea>
           <div class="mt-2 text-[10px] uppercase tracking-widest text-white/50">
@@ -1935,7 +1935,7 @@ Twist: {Z}
 Requirements:
 - Playable in 2-5 minutes, fun within 10 seconds
 - Clear goal, clear win condition, feedback, and restart button
-- Polished UI with animations and sound toggle
+- Polished UI with animations
 - Include short instructions + a “How to play” overlay.
 - Keyboard controls
 - One HTML file only, no external assets
@@ -1954,16 +1954,13 @@ Recommended libraries (use CDN links):
       const templateEl = document.getElementById('promptTemplate');
       const finalEl = document.getElementById('finalPrompt');
       if (!templateEl || !finalEl) return;
-      
+
       const template = templateEl.value || defaultTemplate;
       let final = template
-        .replace("{X}", currentTheme || "")
-        .replace("{Y}", currentGenre || "")
-        .replace("{Z}", currentTwist || "");
+        .replace("{X}", currentTheme || "{X}")
+        .replace("{Y}", currentGenre || "{Y}")
+        .replace("{Z}", currentTwist || "{Z}");
 
-      if(!currentTheme || !currentGenre || !currentTwist) {
-        final = "SPIN THE WHEEL TO GENERATE A PROMPT!";
-      }
       finalEl.value = final;
     }
 
@@ -2106,14 +2103,12 @@ Recommended libraries (use CDN links):
       if (players.length === 0){
         list.innerHTML = `<div class="text-center text-xs text-white/50 py-6">Add players to start tracking wins.</div>`;
         document.getElementById("activeName").textContent = "—";
-        updateTimerPlayerName();
         return;
       }
 
       if (activeIndex >= players.length) activeIndex = 0;
       const active = players[activeIndex];
       document.getElementById("activeName").textContent = active ? active.name : "—";
-      updateTimerPlayerName();
 
       players.forEach((p, index) => {
         const games = (p.wins||0) + (p.losses||0);
@@ -2614,6 +2609,10 @@ Recommended libraries (use CDN links):
     // Boot + Hotkeys
     // ==========================================================
     function boot(){
+      // Initialize prompt display immediately
+      updatePromptDisplay();
+      resetProgress();
+
       // Load sound
       const s = localStorage.getItem("pra_soundOn");
       if (s === "0") soundOn = false;
@@ -2652,14 +2651,12 @@ Recommended libraries (use CDN links):
       renderLeaderboard();
       updateTurnDisplay(); // Update after players are loaded
 
-      // Timer
-      loadTimer();
-      tickTimer();
-      renderTimer();
 
       // First-run tutorial or no players setup
       const seen = localStorage.getItem("pra_seen_tutorial") === "1";
-      if (!seen || players.length === 0){
+      const forceOnboarding = !seen || players.length === 0 || window.location.search.includes('onboard');
+
+      if (forceOnboarding){
         // Always show onboarding if no players, even if tutorial was seen before
         if (players.length === 0) {
           localStorage.removeItem("pra_seen_tutorial");
