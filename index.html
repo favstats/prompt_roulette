@@ -396,7 +396,7 @@
 
   <!-- Submit Game Modal -->
   <div id="submitGameBack" class="modalBack" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;">
-    <div class="modal" style="max-width: 600px;">
+    <div class="modal" style="max-width: 900px;">
       <div class="modalHd">
         <div class="arcade-font text-white text-xs titleGlow">SUBMIT YOUR GAME</div>
         <button class="xbtn arcade-font" onclick="closeSubmitGameModal()">CLOSE</button>
@@ -420,28 +420,25 @@
           </div>
 
 
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-4 gap-3">
             <div>
               <label class="text-xs text-white/70 uppercase tracking-widest">Theme</label>
-              <input type="text" id="submitGameTheme" placeholder="Theme used" 
+              <input type="text" id="submitGameTheme" placeholder="Theme used"
                 class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
             </div>
             <div>
               <label class="text-xs text-white/70 uppercase tracking-widest">Genre</label>
-              <input type="text" id="submitGameGenre" placeholder="Genre used" 
+              <input type="text" id="submitGameGenre" placeholder="Genre used"
                 class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
             </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="text-xs text-white/70 uppercase tracking-widest">Twist</label>
-              <input type="text" id="submitGameTwist" placeholder="Twist used" 
+              <input type="text" id="submitGameTwist" placeholder="Twist used"
                 class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
             </div>
             <div>
               <label class="text-xs text-white/70 uppercase tracking-widest">Difficulty</label>
-              <select id="submitGameDifficulty" 
+              <select id="submitGameDifficulty"
                 class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white border border-white/10 focus:border-pink-500">
                 <option value="normal">Normal</option>
                 <option value="chaos">Chaos</option>
@@ -458,7 +455,7 @@
 
           <div>
             <label class="text-xs text-white/70 uppercase tracking-widest">Game HTML Code *</label>
-            <textarea id="submitGameHTML" placeholder='Paste your complete game HTML code here...' rows="12"
+            <textarea id="submitGameHTML" placeholder='Paste your complete game HTML code here...' rows="8"
               class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white font-mono border border-white/10 focus:border-pink-500 resize-none"></textarea>
             <div class="text-[10px] text-white/50 mt-1">Paste the complete HTML code of your game (the entire &lt;!DOCTYPE html&gt;... file).</div>
           </div>
