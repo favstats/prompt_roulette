@@ -21,6 +21,17 @@
       "url": "https://favstats.github.io/prompt_roulette/games/laughtrack-exe.html",
       "description": "A retro CRT pong-duel where you're a robot trying to \"learn humor\" by blasting the ball past the TV Network. Build HUMANITY to 100% to win, but every mistake drains BATTERY—which also funds desperate upgrades (big paddle, slow time, multiball). Fast, noisy, and beatable in 2–5 minutes.",
       "submitted": "2025-12-14"
+    },
+    {
+      "title": "The Polite Poltergeist",
+      "author": "favstats",
+      "theme": "You're a poltergeist who's too polite to haunt",
+      "genre": "First-Person Shooter",
+      "twist": "Button mashing required",
+      "difficulty": "normal",
+      "url": "https://favstats.github.io/prompt_roulette/games/the-polite-poltergeist.html",
+      "description": "You are a polite ghost, haunting by building up your courage.aYou're Percy, a poltergeist taking your final haunting exam—but you're too polite! Your scares keep turning into nice gestures like serving tea and complimenting décor. Frantically mash SPACEBAR to overcome your politeness and keep your Scare Meter high, then click on wandering humans to haunt them. If your meter is too low, you'll make them cozy instead of scared! Successfully scare 10 humans in 90 seconds to earn your Haunting License.",
+      "submitted": "2025-12-14"
     }
   ]
 }

@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Polite Poltergeist - Haunting Exam</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        #game-container {
+            position: relative;
+            border-radius: 12px;
+            box-shadow: 0 0 60px rgba(138, 43, 226, 0.4), inset 0 0 30px rgba(0,0,0,0.3);
+        }
+        canvas {
+            display: block;
+            border-radius: 12px;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 5, 20, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            border-radius: 12px;
+            z-index: 100;
+            padding: 20px 25px;
+            text-align: center;
+            overflow: hidden;
+        }
+        #overlay.hidden {
+            display: none;
+        }
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 8px;
+        }
+        .header-row .result-icon {
+            font-size: 2.5em;
+            margin: 0;
+            animation: ghostFloat 2s ease-in-out infinite;
+        }
+        #overlay h1 {
+            font-size: 2.2em;
+            margin: 0;
+            text-shadow: 0 0 20px #9b59b6, 0 0 40px #8e44ad;
+        }
+        @keyframes ghostFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        #overlay h2 {
+            font-size: 1.1em;
+            color: #bb8fce;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        .instructions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 850px;
+        }
+        .instructions {
+            background: rgba(155, 89, 182, 0.2);
+            border: 2px solid #9b59b6;
+            border-radius: 10px;
+            padding: 12px 16px;
+            text-align: left;
+        }
+        .instructions.full-width {
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+        .instructions h3 {
+            color: #e8daef;
+            margin-bottom: 8px;
+            font-size: 1.05em;
+        }
+        .instructions p {
+            margin: 5px 0;
+            line-height: 1.4;
+            color: #d7bde2;
+            font-size: 0.95em;
+        }
+        .key {
+            display: inline-block;
+            background: linear-gradient(180deg, #9b59b6 0%, #7d3c98 100%);
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 0 2px;
+            box-shadow: 0 2px 0 #5b2c6f;
+            font-size: 0.9em;
+        }
+        .mash {
+            color: #f39c12;
+            font-weight: bold;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        #start-btn, #restart-btn, #help-btn {
+            background: linear-gradient(180deg, #27ae60 0%, #1e8449 100%);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.2em;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px 0 #145a32, 0 0 20px rgba(39, 174, 96, 0.3);
+            transition: all 0.1s;
+            font-weight: bold;
+        }
+        #start-btn:hover, #restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #145a32, 0 0 30px rgba(39, 174, 96, 0.5);
+        }
+        #start-btn:active, #restart-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #145a32;
+        }
+        #help-btn {
+            background: linear-gradient(180deg, #9b59b6 0%, #7d3c98 100%);
+            box-shadow: 0 5px 0 #5b2c6f, 0 0 20px rgba(155, 89, 182, 0.3);
+            padding: 10px 30px;
+            font-size: 1em;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 50;
+        }
+        #help-btn:hover {
+            box-shadow: 0 7px 0 #5b2c6f, 0 0 30px rgba(155, 89, 182, 0.5);
+        }
+        .result-icon {
+            font-size: 3.5em;
+            margin-bottom: 5px;
+        }
+        .win { color: #2ecc71; }
+        .lose { color: #e74c3c; }
+        .score-display {
+            font-size: 1.3em;
+            margin: 12px 0;
+            color: #f1c40f;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="overlay">
+            <div class="header-row">
+                <div class="result-icon">👻</div>
+                <h1>THE POLITE POLTERGEIST</h1>
+            </div>
+            <h2>~ Haunting Exam: Final Test ~</h2>
+            <div class="instructions-grid">
+                <div class="instructions">
+                    <h3>📜 Your Predicament</h3>
+                    <p>You're <strong>Percy</strong>, a poltergeist taking your final haunting exam.</p>
+                    <p>Problem: You're <em>too polite!</em> Your scares keep turning into nice gestures!</p>
+                </div>
+                <div class="instructions">
+                    <h3>🎯 Win Condition</h3>
+                    <p>Successfully scare <strong>10 humans</strong> in <strong>90 seconds</strong> to pass!</p>
+                    <p>Low scare meter = polite action (makes humans cozy & harder to scare!)</p>
+                </div>
+                <div class="instructions full-width">
+                    <h3>🎮 How to Play</h3>
+                    <p><span class="key">MOUSE</span> aim your ghostly crosshair &nbsp;•&nbsp; <span class="key">CLICK</span> on humans to attempt a haunt &nbsp;•&nbsp; <span class="key mash">MASH SPACEBAR</span> to overcome your politeness!</p>
+                    <p>Keep your <strong>SCARE METER</strong> high or you'll serve tea instead! ☕</p>
+                </div>
+            </div>
+            <button id="start-btn">👻 BEGIN EXAM</button>
+        </div>
+        <button id="help-btn" class="hidden">❓ How to Play</button>
+    </div>
+
+    <script>
+        // Game constants
+        const GAME_WIDTH = 900;
+        const GAME_HEIGHT = 650;
+        const EXAM_GOAL = 10;
+        const GAME_TIME = 90;
+        const SCARE_DECAY = 0.8;
+        const SCARE_BOOST = 8;
+        const SCARE_THRESHOLD = 40;
+
+        // Game state
+        let gameState = 'menu'; // menu, playing, win, lose
+        let scareMeter = 50;
+        let scareCount = 0;
+        let timeLeft = GAME_TIME;
+        let humans = [];
+        let particles = [];
+        let floatingTexts = [];
+        let lastMashTime = 0;
+        let mashCombo = 0;
+        let screenShake = 0;
+        let ghostMessages = [];
+
+        // Polite vs Scary messages
+        const SCARE_MESSAGES = ["BOO!", "FEAR ME!", "SPOOKY!", "BEGONE!", "AAAARGH!", "👻💀"];
+        const POLITE_MESSAGES = ["Nice weather!", "Lovely home!", "Here's tea! ☕", "You look nice!", "Pardon me!", "So sorry! 🎀"];
+        const POLITE_ACTIONS = ["serves tea", "compliments decor", "apologizes", "offers biscuits", "tidies up", "says please"];
+
+        // Human class
+        class Human {
+            constructor() {
+                this.reset();
+                this.cozyLevel = 0; // How comfortable they are (harder to scare)
+                this.scared = false;
+                this.scareTimer = 0;
+                this.comfortTimer = 0;
+                this.expression = '😐';
+                this.bobOffset = random(TWO_PI);
+                this.hatType = floor(random(4));
+                this.shirtColor = color(random(100, 255), random(100, 255), random(100, 255));
+                this.size = random(0.9, 1.1);
+            }
+
+            reset() {
+                // Spawn from edges
+                let side = floor(random(4));
+                if (side === 0) { this.x = random(100, GAME_WIDTH - 100); this.y = -50; }
+                else if (side === 1) { this.x = random(100, GAME_WIDTH - 100); this.y = GAME_HEIGHT + 50; }
+                else if (side === 2) { this.x = -50; this.y = random(150, GAME_HEIGHT - 100); }
+                else { this.x = GAME_WIDTH + 50; this.y = random(150, GAME_HEIGHT - 100); }
+                
+                this.targetX = random(150, GAME_WIDTH - 150);
+                this.targetY = random(200, GAME_HEIGHT - 100);
+                this.speed = random(0.8, 1.5);
+                this.wanderTimer = random(60, 180);
+            }
+
+            update() {
+                // Move toward target
+                let dx = this.targetX - this.x;
+                let dy = this.targetY - this.y;
+                let dist = sqrt(dx * dx + dy * dy);
+                
+                if (dist > 5) {
+                    this.x += (dx / dist) * this.speed;
+                    this.y += (dy / dist) * this.speed;
+                }
+
+                // Wander to new target
+                this.wanderTimer--;
+                if (this.wanderTimer <= 0 || dist < 5) {
+                    this.targetX = random(150, GAME_WIDTH - 150);
+                    this.targetY = random(200, GAME_HEIGHT - 100);
+                    this.wanderTimer = random(90, 200);
+                }
+
+                // Update timers
+                if (this.scareTimer > 0) {
+                    this.scareTimer--;
+                    if (this.scareTimer === 0 && this.scared) {
+                        return true; // Remove this human
+                    }
+                }
+
+                if (this.comfortTimer > 0) {
+                    this.comfortTimer--;
+                    if (this.comfortTimer === 0) {
+                        this.expression = this.cozyLevel > 0 ? '😊' : '😐';
+                    }
+                }
+
+                return false;
+            }
+
+            draw() {
+                push();
+                translate(this.x, this.y);
+                let bob = sin(frameCount * 0.05 + this.bobOffset) * 3;
+                translate(0, bob);
+                scale(this.size);
+
+                // Shadow
+                fill(0, 0, 0, 50);
+                noStroke();
+                ellipse(0, 55, 50, 15);
+
+                // Body
+                fill(this.shirtColor);
+                stroke(0);
+                strokeWeight(2);
+                rect(-20, 10, 40, 45, 5);
+
+                // Head
+                fill(255, 220, 180);
+                ellipse(0, -5, 45, 50);
+
+                // Expression
+                textSize(25);
+                textAlign(CENTER, CENTER);
+                noStroke();
+                text(this.expression, 0, -5);
+
+                // Hat variations
+                fill(80, 60, 40);
+                stroke(0);
+                strokeWeight(2);
+                if (this.hatType === 0) {
+                    // Top hat
+                    rect(-15, -45, 30, 25, 3);
+                    rect(-22, -23, 44, 6, 2);
+                } else if (this.hatType === 1) {
+                    // Beanie
+                    fill(200, 50, 50);
+                    arc(0, -25, 40, 35, PI, 0, CHORD);
+                    fill(255);
+                    ellipse(0, -42, 10, 10);
+                } else if (this.hatType === 2) {
+                    // Cap
+                    fill(50, 50, 150);
+                    arc(0, -25, 45, 30, PI, 0, CHORD);
+                    fill(60, 60, 160);
+                    arc(15, -20, 35, 12, -0.3, PI * 0.5);
+                }
+                // hatType 3 = no hat
+
+                // Cozy indicator (tea cup if cozy)
+                if (this.cozyLevel > 0) {
+                    textSize(20);
+                    noStroke();
+                    text('☕', 35, 20);
+                    if (this.cozyLevel > 1) {
+                        text('🍪', 40, 0);
+                    }
+                }
+
+                pop();
+            }
+
+            contains(px, py) {
+                let d = dist(px, py, this.x, this.y);
+                return d < 40 * this.size;
+            }
+
+            scare(successful) {
+                if (successful) {
+                    if (this.cozyLevel > 0) {
+                        // Need extra scare for cozy humans
+                        this.cozyLevel--;
+                        this.expression = '😰';
+                        this.comfortTimer = 60;
+                        return false; // Not fully scared yet
+                    }
+                    this.scared = true;
+                    this.expression = '😱';
+                    this.scareTimer = 45;
+                    return true;
+                } else {
+                    // Polite action - make them cozy
+                    this.cozyLevel = min(this.cozyLevel + 1, 2);
+                    this.expression = '🥰';
+                    this.comfortTimer = 90;
+                    return false;
+                }
+            }
+        }
+
+        // Particle class
+        class Particle {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.vx = random(-3, 3);
+                this.vy = random(-5, -2);
+                this.life = 60;
+                this.maxLife = 60;
+                this.rotation = random(TWO_PI);
+                this.rotSpeed = random(-0.2, 0.2);
+                this.size = random(15, 30);
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.15;
+                this.vx *= 0.98;
+                this.rotation += this.rotSpeed;
+                this.life--;
+                return this.life <= 0;
+            }
+
+            draw() {
+                let alpha = (this.life / this.maxLife) * 255;
+                push();
+                translate(this.x, this.y);
+                rotate(this.rotation);
+                textSize(this.size);
+                textAlign(CENTER, CENTER);
+                
+                if (this.type === 'scare') {
+                    tint(255, alpha);
+                    text(random() > 0.5 ? '💀' : '👻', 0, 0);
+                } else {
+                    text(random() > 0.5 ? '☕' : '🌸', 0, 0);
+                }
+                pop();
+            }
+        }
+
+        // Floating text class
+        class FloatingText {
+            constructor(x, y, text, color, size = 24) {
+                this.x = x;
+                this.y = y;
+                this.text = text;
+                this.color = color;
+                this.size = size;
+                this.life = 60;
+                this.maxLife = 60;
+                this.vy = -2;
+            }
+
+            update() {
+                this.y += this.vy;
+                this.vy *= 0.95;
+                this.life--;
+                return this.life <= 0;
+            }
+
+            draw() {
+                let alpha = (this.life / this.maxLife) * 255;
+                push();
+                textSize(this.size);
+                textAlign(CENTER, CENTER);
+                fill(red(this.color), green(this.color), blue(this.color), alpha);
+                stroke(0, alpha);
+                strokeWeight(3);
+                text(this.text, this.x, this.y);
+                pop();
+            }
+        }
+
+        function setup() {
+            let canvas = createCanvas(GAME_WIDTH, GAME_HEIGHT);
+            canvas.parent('game-container');
+            textFont('Segoe UI Emoji, Segoe UI, sans-serif');
+            noCursor();
+
+            // Button handlers
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('help-btn').addEventListener('click', showHelp);
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            scareMeter = 50;
+            scareCount = 0;
+            timeLeft = GAME_TIME;
+            humans = [];
+            particles = [];
+            floatingTexts = [];
+            ghostMessages = [];
+            mashCombo = 0;
+
+            // Spawn initial humans
+            for (let i = 0; i < 4; i++) {
+                humans.push(new Human());
+            }
+
+            document.getElementById('overlay').classList.add('hidden');
+            document.getElementById('help-btn').classList.remove('hidden');
+        }
+
+        function showHelp() {
+            document.getElementById('overlay').classList.remove('hidden');
+            document.getElementById('start-btn').textContent = '👻 RESUME';
+            gameState = 'paused';
+        }
+
+        function showEndScreen(won) {
+            let overlay = document.getElementById('overlay');
+            overlay.classList.remove('hidden');
+            document.getElementById('help-btn').classList.add('hidden');
+            
+            if (won) {
+                overlay.innerHTML = `
+                    <div class="result-icon win">🎓</div>
+                    <h1 style="color: #2ecc71;">EXAM PASSED!</h1>
+                    <h2>You've earned your Haunting License!</h2>
+                    <div class="score-display">
+                        👻 ${scareCount} successful scares!<br>
+                        ⏱️ ${GAME_TIME - timeLeft}s remaining
+                    </div>
+                    <p style="color: #aaa; margin: 15px 0;">The Ghost Council is impressed by your spookiness!</p>
+                    <button id="restart-btn" onclick="location.reload()">👻 HAUNT AGAIN</button>
+                `;
+            } else {
+                overlay.innerHTML = `
+                    <div class="result-icon lose">😅</div>
+                    <h1 style="color: #e74c3c;">TOO POLITE!</h1>
+                    <h2>Exam Failed - You're Just Too Nice!</h2>
+                    <div class="score-display">
+                        👻 ${scareCount}/${EXAM_GOAL} scares<br>
+                        ☕ You served ${floor(random(5, 15))} cups of tea
+                    </div>
+                    <p style="color: #aaa; margin: 15px 0;">The Ghost Council suggests anger management... in reverse.</p>
+                    <button id="restart-btn" onclick="location.reload()">👻 TRY AGAIN</button>
+                `;
+            }
+        }
+
+        function draw() {
+            if (gameState === 'menu' || gameState === 'paused') {
+                drawGame();
+                return;
+            }
+
+            if (gameState === 'playing') {
+                updateGame();
+            }
+            
+            drawGame();
+        }
+
+        function updateGame() {
+            // Timer
+            if (frameCount % 60 === 0) {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    gameState = 'lose';
+                    showEndScreen(false);
+                    return;
+                }
+            }
+
+            // Decay scare meter (your polite nature taking over!)
+            scareMeter = max(0, scareMeter - SCARE_DECAY * (1 - mashCombo * 0.1));
+            mashCombo = max(0, mashCombo - 0.02);
+
+            // Update screen shake
+            screenShake *= 0.9;
+
+            // Update humans
+            for (let i = humans.length - 1; i >= 0; i--) {
+                if (humans[i].update()) {
+                    humans.splice(i, 1);
+                    // Spawn new human
+                    setTimeout(() => {
+                        if (gameState === 'playing' && humans.length < 5) {
+                            humans.push(new Human());
+                        }
+                    }, 500);
+                }
+            }
+
+            // Ensure minimum humans
+            while (humans.length < 3 && gameState === 'playing') {
+                humans.push(new Human());
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                if (particles[i].update()) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            // Update floating texts
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                if (floatingTexts[i].update()) {
+                    floatingTexts.splice(i, 1);
+                }
+            }
+
+            // Update ghost messages
+            for (let i = ghostMessages.length - 1; i >= 0; i--) {
+                ghostMessages[i].life--;
+                if (ghostMessages[i].life <= 0) {
+                    ghostMessages.splice(i, 1);
+                }
+            }
+        }
+
+        function drawGame() {
+            // Apply screen shake
+            push();
+            if (screenShake > 0.5) {
+                translate(random(-screenShake, screenShake), random(-screenShake, screenShake));
+            }
+
+            // Background - spooky living room
+            drawBackground();
+
+            // Draw humans
+            for (let h of humans) {
+                h.draw();
+            }
+
+            // Draw particles
+            for (let p of particles) {
+                p.draw();
+            }
+
+            // Draw floating texts
+            for (let ft of floatingTexts) {
+                ft.draw();
+            }
+
+            // Draw ghost messages (what Percy says)
+            for (let gm of ghostMessages) {
+                let alpha = (gm.life / gm.maxLife) * 255;
+                push();
+                textSize(28);
+                textAlign(CENTER, CENTER);
+                fill(gm.color[0], gm.color[1], gm.color[2], alpha);
+                stroke(0, alpha);
+                strokeWeight(4);
+                let wobble = sin(frameCount * 0.3) * 5;
+                text(gm.text, gm.x + wobble, gm.y);
+                pop();
+            }
+
+            pop();
+
+            // Draw UI
+            drawUI();
+
+            // Draw crosshair
+            drawCrosshair();
+        }
+
+        function drawBackground() {
+            // Gradient background
+            for (let y = 0; y < GAME_HEIGHT; y += 10) {
+                let inter = map(y, 0, GAME_HEIGHT, 0, 1);
+                let c = lerpColor(color(40, 20, 60), color(20, 10, 35), inter);
+                noStroke();
+                fill(c);
+                rect(0, y, GAME_WIDTH, 10);
+            }
+
+            // Floor
+            fill(60, 40, 30);
+            stroke(40, 25, 15);
+            strokeWeight(2);
+            rect(0, GAME_HEIGHT - 80, GAME_WIDTH, 80);
+
+            // Floorboard lines
+            stroke(50, 30, 20);
+            for (let x = 0; x < GAME_WIDTH; x += 80) {
+                line(x, GAME_HEIGHT - 80, x, GAME_HEIGHT);
+            }
+
+            // Wall decorations
+            // Spooky painting
+            fill(70, 50, 40);
+            stroke(100, 70, 50);
+            strokeWeight(4);
+            rect(100, 80, 120, 90, 3);
+            fill(30, 50, 60);
+            noStroke();
+            rect(108, 88, 104, 74);
+            // Ghost in painting
+            fill(200, 200, 220, 150);
+            ellipse(160, 120, 40, 50);
+            ellipse(145, 135, 15, 20);
+            ellipse(175, 135, 15, 20);
+            fill(20);
+            ellipse(150, 115, 8, 10);
+            ellipse(170, 115, 8, 10);
+            ellipse(160, 130, 10, 15);
+
+            // Bookshelf
+            fill(80, 50, 30);
+            stroke(60, 35, 20);
+            strokeWeight(2);
+            rect(GAME_WIDTH - 180, 60, 140, 180, 3);
+            // Shelves
+            fill(70, 45, 25);
+            for (let y = 100; y < 230; y += 45) {
+                rect(GAME_WIDTH - 175, y, 130, 8);
+            }
+            // Books
+            let bookColors = ['#c0392b', '#2980b9', '#27ae60', '#8e44ad', '#f39c12'];
+            for (let shelf = 0; shelf < 3; shelf++) {
+                let bx = GAME_WIDTH - 170;
+                for (let i = 0; i < 6; i++) {
+                    fill(bookColors[i % bookColors.length]);
+                    let bh = random(25, 38);
+                    rect(bx, 62 + shelf * 45 + (40 - bh), random(12, 20), bh, 1);
+                    bx += random(15, 22);
+                }
+            }
+
+            // Window
+            fill(20, 25, 50);
+            stroke(80, 60, 40);
+            strokeWeight(6);
+            rect(GAME_WIDTH / 2 - 80, 50, 160, 120, 5);
+            // Window panes
+            stroke(60, 45, 30);
+            strokeWeight(4);
+            line(GAME_WIDTH / 2, 50, GAME_WIDTH / 2, 170);
+            line(GAME_WIDTH / 2 - 80, 110, GAME_WIDTH / 2 + 80, 110);
+            // Moon
+            fill(240, 240, 200);
+            noStroke();
+            ellipse(GAME_WIDTH / 2 + 30, 90, 35, 35);
+            // Stars
+            fill(255, 255, 200);
+            for (let i = 0; i < 5; i++) {
+                ellipse(GAME_WIDTH / 2 - 60 + i * 30, 70 + (i % 2) * 20, 3, 3);
+            }
+
+            // Candles with flicker
+            for (let cx of [50, GAME_WIDTH - 50]) {
+                fill(200, 180, 150);
+                noStroke();
+                rect(cx - 8, 180, 16, 50, 2);
+                // Flame
+                fill(255, 200, 50, 200 + sin(frameCount * 0.2 + cx) * 55);
+                ellipse(cx, 175 + sin(frameCount * 0.15 + cx) * 3, 12, 20);
+                fill(255, 100, 50, 150);
+                ellipse(cx, 170 + sin(frameCount * 0.2 + cx) * 2, 6, 12);
+            }
+
+            // Cobwebs
+            stroke(150, 150, 150, 80);
+            strokeWeight(1);
+            noFill();
+            // Top left cobweb
+            for (let i = 0; i < 5; i++) {
+                let r = 30 + i * 15;
+                arc(0, 0, r, r, 0, HALF_PI);
+            }
+            // Top right cobweb
+            for (let i = 0; i < 5; i++) {
+                let r = 30 + i * 15;
+                arc(GAME_WIDTH, 0, r, r, HALF_PI, PI);
+            }
+        }
+
+        function drawUI() {
+            // Top bar background
+            fill(0, 0, 0, 180);
+            noStroke();
+            rect(0, 0, GAME_WIDTH, 65, 0, 0, 12, 12);
+
+            // Scare meter background
+            fill(40, 40, 40);
+            stroke(80, 80, 80);
+            strokeWeight(2);
+            rect(20, 15, 280, 35, 8);
+
+            // Scare meter fill
+            let meterColor;
+            if (scareMeter > SCARE_THRESHOLD) {
+                meterColor = lerpColor(color(200, 100, 50), color(180, 50, 220), (scareMeter - SCARE_THRESHOLD) / (100 - SCARE_THRESHOLD));
+            } else {
+                meterColor = lerpColor(color(100, 200, 100), color(200, 100, 50), scareMeter / SCARE_THRESHOLD);
+            }
+            fill(meterColor);
+            noStroke();
+            let meterWidth = map(scareMeter, 0, 100, 0, 270);
+            rect(25, 20, meterWidth, 25, 5);
+
+            // Meter glow when high
+            if (scareMeter > SCARE_THRESHOLD) {
+                fill(180, 50, 220, 50 + sin(frameCount * 0.2) * 30);
+                rect(25, 20, meterWidth, 25, 5);
+            }
+
+            // Scare meter label
+            fill(255);
+            noStroke();
+            textSize(14);
+            textAlign(LEFT, CENTER);
+            text(scareMeter > SCARE_THRESHOLD ? "👻 SPOOKY!" : "☕ TOO POLITE", 30, 32);
+
+            // Threshold marker
+            stroke(255, 255, 255, 150);
+            strokeWeight(2);
+            let threshX = 25 + map(SCARE_THRESHOLD, 0, 100, 0, 270);
+            line(threshX, 18, threshX, 52);
+
+            // Mash indicator
+            if (mashCombo > 0.5) {
+                textSize(12);
+                fill(255, 200, 50);
+                noStroke();
+                textAlign(LEFT, CENTER);
+                text("⚡ MASHING!", 200, 32);
+            }
+
+            // Score / Progress
+            fill(255);
+            textSize(22);
+            textAlign(CENTER, CENTER);
+            text(`👻 ${scareCount} / ${EXAM_GOAL}`, GAME_WIDTH / 2, 32);
+
+            // Progress bar
+            fill(40, 40, 40);
+            stroke(80, 80, 80);
+            strokeWeight(2);
+            rect(GAME_WIDTH / 2 - 80, 48, 160, 10, 5);
+            fill(50, 200, 100);
+            noStroke();
+            let progWidth = map(scareCount, 0, EXAM_GOAL, 0, 156);
+            rect(GAME_WIDTH / 2 - 78, 50, progWidth, 6, 3);
+
+            // Timer
+            fill(timeLeft <= 15 ? color(255, 100, 100) : color(255));
+            textSize(24);
+            textAlign(RIGHT, CENTER);
+            let timeColor = timeLeft <= 15 ? '🔴' : '⏱️';
+            text(`${timeColor} ${timeLeft}s`, GAME_WIDTH - 25, 32);
+
+            // Instructions reminder (bottom)
+            fill(255, 255, 255, 150);
+            textSize(14);
+            textAlign(CENTER, BOTTOM);
+            text("MASH [SPACE] to stay spooky! | CLICK humans to haunt!", GAME_WIDTH / 2, GAME_HEIGHT - 10);
+        }
+
+        function drawCrosshair() {
+            let cx = mouseX;
+            let cy = mouseY;
+
+            // Ghostly crosshair
+            push();
+            translate(cx, cy);
+
+            // Outer ring
+            noFill();
+            stroke(200, 150, 255, 150);
+            strokeWeight(2);
+            ellipse(0, 0, 50 + sin(frameCount * 0.1) * 5, 50 + sin(frameCount * 0.1) * 5);
+
+            // Inner elements based on scare meter
+            if (scareMeter > SCARE_THRESHOLD) {
+                // Spooky crosshair
+                stroke(180, 50, 220, 200);
+                strokeWeight(3);
+                line(-15, 0, -8, 0);
+                line(15, 0, 8, 0);
+                line(0, -15, 0, -8);
+                line(0, 15, 0, 8);
+
+                // Ghost icon
+                fill(180, 50, 220, 200);
+                noStroke();
+                textSize(20);
+                textAlign(CENTER, CENTER);
+                text('👻', 0, 0);
+            } else {
+                // Polite crosshair (tea cup)
+                stroke(100, 200, 100, 200);
+                strokeWeight(2);
+                line(-12, 0, -6, 0);
+                line(12, 0, 6, 0);
+                line(0, -12, 0, -6);
+                line(0, 12, 0, 6);
+
+                fill(100, 200, 100, 200);
+                noStroke();
+                textSize(18);
+                textAlign(CENTER, CENTER);
+                text('☕', 0, 0);
+            }
+
+            pop();
+        }
+
+        function keyPressed() {
+            if (gameState === 'playing' && (key === ' ' || keyCode === 32)) {
+                // Mash detected!
+                scareMeter = min(100, scareMeter + SCARE_BOOST);
+                mashCombo = min(1, mashCombo + 0.15);
+                screenShake = max(screenShake, 2);
+
+                // Visual feedback
+                if (scareMeter > SCARE_THRESHOLD && random() > 0.7) {
+                    particles.push(new Particle(mouseX + random(-30, 30), mouseY + random(-30, 30), 'scare'));
+                }
+                return false; // Prevent scrolling
+            }
+
+            if (gameState === 'paused' && (key === ' ' || keyCode === 32)) {
+                gameState = 'playing';
+                document.getElementById('overlay').classList.add('hidden');
+                return false;
+            }
+        }
+
+        function mousePressed() {
+            if (gameState !== 'playing') return;
+
+            // Check if clicked on a human
+            for (let h of humans) {
+                if (h.contains(mouseX, mouseY) && !h.scared) {
+                    attemptHaunt(h);
+                    break;
+                }
+            }
+        }
+
+        function attemptHaunt(human) {
+            let successful = scareMeter >= SCARE_THRESHOLD;
+            let fullyScarred = human.scare(successful);
+
+            // Particles
+            for (let i = 0; i < 8; i++) {
+                particles.push(new Particle(human.x, human.y - 20, successful ? 'scare' : 'polite'));
+            }
+
+            if (successful) {
+                if (fullyScarred) {
+                    // Full scare!
+                    scareCount++;
+                    screenShake = 10;
+                    
+                    let msg = random(SCARE_MESSAGES);
+                    ghostMessages.push({
+                        x: human.x,
+                        y: human.y - 80,
+                        text: msg,
+                        color: [180, 50, 220],
+                        life: 60,
+                        maxLife: 60
+                    });
+
+                    floatingTexts.push(new FloatingText(human.x, human.y - 50, "+1 SCARE!", color(50, 220, 100), 28));
+
+                    // Check win condition
+                    if (scareCount >= EXAM_GOAL) {
+                        gameState = 'win';
+                        showEndScreen(true);
+                    }
+                } else {
+                    // Breaking through cozy
+                    screenShake = 5;
+                    floatingTexts.push(new FloatingText(human.x, human.y - 50, "GETTING THERE...", color(255, 200, 50), 20));
+                    ghostMessages.push({
+                        x: human.x,
+                        y: human.y - 80,
+                        text: "Boo..?",
+                        color: [255, 200, 50],
+                        life: 45,
+                        maxLife: 45
+                    });
+                }
+            } else {
+                // Too polite!
+                screenShake = 3;
+                
+                let msg = random(POLITE_MESSAGES);
+                ghostMessages.push({
+                    x: human.x,
+                    y: human.y - 80,
+                    text: msg,
+                    color: [100, 200, 100],
+                    life: 60,
+                    maxLife: 60
+                });
+
+                let action = random(POLITE_ACTIONS);
+                floatingTexts.push(new FloatingText(human.x, human.y - 50, `*${action}*`, color(150, 220, 150), 18));
+            }
+
+            // Drain some meter on use
+            scareMeter = max(0, scareMeter - 15);
+        }
+
+        // Prevent spacebar scrolling
+        window.addEventListener('keydown', function(e) {
+            if (e.keyCode === 32 && e.target === document.body) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
