@@ -13,3 +13,18 @@
     }
   ]
 }
+
+    },
+    {
+      "title": "LaughTrack.exe",
+      "author": "favstats", 
+      "theme": "You're a robot learning to be human by watching sitcoms",
+      "genre": "Pong Variant",
+      "twist": "Lives are currency",
+      "difficulty": "normal",
+      "url": "https://favstats.github.io/prompt_roulette/games/laughtrack-exe.html",
+      "description": "A retro CRT pong-duel where you're a robot trying to \"learn humor\" by blasting the ball past the TV Network. Build HUMANITY to 100% to win, but every mistake drains BATTERY—which also funds desperate upgrades (big paddle, slow time, multiball). Fast, noisy, and beatable in 2–5 minutes.",
+      "submitted": "2025-12-14"
+    }
+  ]
+}
