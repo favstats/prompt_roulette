@@ -1923,13 +1923,20 @@
     // ==========================================================
     // PROMPT TEMPLATE + COPY
     // ==========================================================
-    const defaultTemplate = `Create a fun browser game in a single HTML file. Must work offline.
+    const defaultTemplate = `Create a BEATABLE browser game in a single HTML file. Must work offline.
 
 Theme: {X}
 Genre: {Y}
 Twist: {Z}
 
-Requirements:
+CRITICAL REQUIREMENTS (game MUST be winnable):
+- CLEAR WIN CONDITION: Player must be able to WIN the game through skill/challenge
+- BEATABLE: Game should be completable in 2-5 minutes by skilled players
+- PROGRESS FEEDBACK: Show clear progress toward victory
+- RESTART BUTTON: Must have a way to restart and try again
+- BALANCED DIFFICULTY: Fun challenge, not impossible
+
+ADDITIONAL REQUIREMENTS:
 - Playable in 2-5 minutes, fun within 10 seconds
 - Clear goal, clear win condition, feedback, and restart button
 - Polished UI with animations
