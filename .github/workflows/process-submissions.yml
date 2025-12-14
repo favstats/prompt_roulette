@@ -7,6 +7,9 @@ on:
     paths:
       - 'submissions/*.json'
 
+permissions:
+  contents: write
+
 jobs:
   process-submissions:
     runs-on: ubuntu-latest
