@@ -877,7 +877,7 @@
     async function loadDataFromJSON() {
       const cacheKey = (name) => `pra_${name}_cache`;
       const cacheTime = (name) => `pra_${name}_time`;
-      const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+      const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes (reduced for faster updates)
 
       async function fetchWithCache(filename, fallbackData) {
         // Check cache first
@@ -2417,6 +2417,10 @@ Recommended libraries (use CDN links):
     }
 
     function loadCommunityGames() {
+      // Clear games cache to force fresh load
+      localStorage.removeItem('pra_games.json_cache');
+      localStorage.removeItem('pra_games.json_time');
+
       loadDataFromJSON().then(() => {
         renderCommunityGames();
       }).catch(err => {
