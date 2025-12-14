@@ -2429,7 +2429,42 @@ Recommended libraries (use CDN links):
         renderCommunityGames();
       }).catch(err => {
         console.warn('Failed to load games', err);
-        renderCommunityGames(); // Render with whatever we have
+        // For local development, try to load games.json synchronously
+        if (window.location.protocol === 'file:') {
+          try {
+            // Use a fallback inline games data for local development
+            communityGames = [
+              {
+                "title": "Cage's Declaration Run",
+                "author": "Community",
+                "theme": "Nic Cage must steal the Declaration of Independence again, but this time it's harder",
+                "genre": "Bullet Hell",
+                "twist": "Comic Sans Mandatory",
+                "difficulty": "normal",
+                "url": "games/cages-declaration-run.html",
+                "description": "Dodge security lasers as Nic Cage to steal the Declaration of Independence. Bullet hell gameplay with Comic Sans MS font.",
+                "submitted": "2024-01-01"
+              },
+              {
+                "title": "LaughTrack.exe",
+                "author": "favstats",
+                "theme": "You're a robot learning to be human by watching sitcoms",
+                "genre": "Pong Variant",
+                "twist": "Lives are currency",
+                "difficulty": "normal",
+                "url": "games/laughtrack-exe.html",
+                "description": "A retro CRT pong-duel where you're a robot trying to 'learn humor' by blasting the ball past the TV Network. Build HUMANITY to 100% to win!",
+                "submitted": "2025-12-14"
+              }
+            ];
+            renderCommunityGames();
+          } catch (e) {
+            console.warn('Failed to load local games data', e);
+            renderCommunityGames();
+          }
+        } else {
+          renderCommunityGames(); // Render with whatever we have
+        }
       });
     }
 
