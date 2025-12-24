@@ -204,6 +204,9 @@
     }
     .modal{
       width: min(920px, 100%);
+      max-height: calc(100vh - 40px);
+      display: flex;
+      flex-direction: column;
       background: rgba(10,0,18,0.94);
       border: 1px solid rgba(255,0,222,0.24);
       border-radius: 18px;
@@ -218,8 +221,13 @@
       padding: 14px 14px;
       border-bottom: 1px solid rgba(255,255,255,0.10);
       background: rgba(255,255,255,0.04);
+      flex-shrink: 0;
     }
-    .modalBd{padding: 14px;}
+    .modalBd{
+      padding: 14px;
+      overflow-y: auto;
+      flex: 1;
+    }
     .modalTitle{font-size: 12px; letter-spacing: .12em; text-transform: uppercase;}
     .xbtn{
       font-size: 12px;
@@ -315,10 +323,10 @@
           <div class="arcade-font text-xs text-neon-cyan">HOW IT WORKS</div>
           <div class="text-sm leading-relaxed text-white/80">
             <ol class="list-decimal pl-5 space-y-2">
-              <li><b>Choose difficulty:</b> <span class="text-neon-green">NORMAL</span> (1x points), <span class="text-neon-yellow">CHAOS</span> (2x points), or <span class="text-neon-pink">BRAINROT</span> (3x points).</li>
+              <li><b>Choose difficulty</b> and <b>format</b> (HTML or PICO-8).</li>
               <li><b>Spin</b> the wheel to lock three variables: <span class="text-neon-pink">X</span> story, <span class="text-neon-cyan">Y</span> genre, <span class="text-neon-pink">Z</span> twist.</li>
               <li><b>Copy prompt</b> and paste it into any LLM (ChatGPT, Claude, etc.).</li>
-              <li>Ask for <b>a single HTML file</b>, open it in your browser, and play the generated game.</li>
+              <li><b>Save the game</b> and run it <span class="text-neon-yellow">(see guide →)</span></li>
               <li>When you win/lose, log it in <b>High Scores</b>. Points multiply by difficulty!</li>
               <li>Track turns and compete over multiple rounds.</li>
             </ol>
@@ -332,19 +340,15 @@
                 <div>• Use <span class="kbd arcade-font text-[10px] px-2 py-1 rounded bg-black/60 border border-white/10">L</span> to open Arcade Lounge.</div>
                 <div>• Click slots to <b>HOLD</b> them for the next spin.</div>
                 <div>• Higher difficulty = more points but wilder prompts!</div>
-                <div>• While the LLM generates: open <b>Arcade Lounge</b> for mini-games, bingo, clickers, and more.</div>
               </div>
             </div>
-        </div>
 
-        <div class="space-y-3">
-          <div class="arcade-font text-xs text-neon-pink">ABOUT</div>
-          <div class="text-sm leading-relaxed text-white/80">
-            Prompt Roulette is a party game for generating browser games on the fly with an LLM.
-            Made by <b>Fabio Votta</b> (<b>@favstats</b>).
-          </div>
-          <div class="text-sm leading-relaxed text-white/70">
-            Share it freely, remix it, and please keep the “About” credit intact.
+          <div class="pixelBox bg-gradient-to-br from-purple-900/20 to-cyan-900/20 border-purple-500/20">
+            <div class="miniTitle text-purple-300">Game Formats</div>
+            <div class="text-sm text-white/75 mt-2 space-y-2">
+              <div><span class="text-cyan-300 font-bold">HTML:</span> Browser games (JS, Canvas, SVG). Save as <code class="text-cyan-300">.html</code> and open in browser.</div>
+              <div><span class="text-purple-300 font-bold">PICO-8:</span> Retro pixel games. Save as <code class="text-purple-300">.p8</code> and drag into <a href="https://www.pico-8-edu.com" target="_blank" class="text-purple-400 hover:underline">pico-8-edu.com</a></div>
+            </div>
           </div>
 
           <div class="pixelBox">
@@ -353,13 +357,55 @@
               <div>• Best-of-5 rounds per player.</div>
               <div>• If two players tie in wins, win-rate decides.</div>
               <div>• If a generated game is broken, you get <span class="text-neon-yellow">one</span> free reroll.</div>
+              <div>• "Spicy" means edgy satire, not hate. If a roll feels off, spin again.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="arcade-font text-xs text-neon-cyan">📥 HOW TO SAVE YOUR GAME</div>
+          <div class="text-sm text-white/80 mb-2">After the AI generates your game code:</div>
+          
+          <div class="pixelBox bg-gradient-to-br from-cyan-900/30 to-blue-900/30 border-cyan-500/30">
+            <div class="text-sm text-white/85 space-y-3">
+              <div class="pl-3 border-l-2 border-cyan-500/50 space-y-2">
+                <div><span class="text-neon-green font-bold">Step 1:</span> Look for a <span class="bg-black/40 px-2 py-0.5 rounded text-cyan-300 font-mono text-xs">Copy</span> button in ChatGPT/Claude (usually top-right of the code block). Click it!</div>
+                
+                <div><span class="text-neon-green font-bold">Step 2:</span> Open any text editor:
+                  <div class="text-xs text-white/60 pl-4 mt-1">
+                    • <b>Windows:</b> Notepad (search "Notepad" in Start menu)<br>
+                    • <b>Mac:</b> TextEdit (search in Spotlight) — then go to Format → Make Plain Text<br>
+                    • <b>Or:</b> VS Code, Sublime Text, or any code editor
+                  </div>
+                </div>
+                
+                <div><span class="text-neon-green font-bold">Step 3:</span> Paste the code (<span class="font-mono text-xs bg-black/40 px-1.5 rounded">Ctrl+V</span> on Windows, <span class="font-mono text-xs bg-black/40 px-1.5 rounded">Cmd+V</span> on Mac)</div>
+                
+                <div><span class="text-neon-green font-bold">Step 4:</span> Save the file:
+                  <div class="text-xs text-white/60 pl-4 mt-1">
+                    • Go to File → Save As<br>
+                    • <span class="text-cyan-300">HTML format:</span> Save as <span class="text-cyan-300 font-mono">mygame.html</span><br>
+                    • <span class="text-purple-300">PICO-8 format:</span> Save as <span class="text-purple-300 font-mono">mygame.p8</span>
+                  </div>
+                </div>
+                
+                <div><span class="text-neon-green font-bold">Step 5:</span> Run your game:
+                  <div class="text-xs text-white/60 pl-4 mt-1">
+                    • <span class="text-cyan-300">HTML:</span> Double-click the file — opens in browser! 🎮<br>
+                    • <span class="text-purple-300">PICO-8:</span> Drag the .p8 file into <a href="https://www.pico-8-edu.com" target="_blank" class="text-purple-400 hover:underline">pico-8-edu.com</a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-xs text-white/50 italic pt-1">💡 Tip: Create a "Games" folder on your desktop to keep all your creations!</div>
             </div>
           </div>
 
           <div class="pixelBox">
-            <div class="miniTitle">Safe spice</div>
+            <div class="miniTitle text-neon-pink">ABOUT</div>
             <div class="text-sm text-white/75 mt-2">
-              “Spicy” means edgy satire and chaos, not hate. If a roll feels off, spin again.
+              Prompt Roulette is a party game for generating browser games on the fly with an LLM.
+              Made by <b>Fabio Votta</b> (<b>@favstats</b>). Share it freely!
             </div>
           </div>
         </div>
@@ -404,7 +450,7 @@
       <div class="modalBd">
         <div class="space-y-3">
           <div class="text-sm text-white/80">
-            Fill out the form below and paste your game's HTML code. We'll generate a GitHub issue link for you to submit your game.
+            Share your game with the community! Fill out the form below and paste the HTML code that ChatGPT/Claude generated for you.
           </div>
           
           <div>
@@ -457,7 +503,10 @@
             <label class="text-xs text-white/70 uppercase tracking-widest">Game HTML Code *</label>
             <textarea id="submitGameHTML" placeholder='Paste your complete game HTML code here...' rows="8"
               class="w-full mt-1 p-2 rounded text-sm bg-black/70 text-white font-mono border border-white/10 focus:border-pink-500 resize-none"></textarea>
-            <div class="text-[10px] text-white/50 mt-1">Paste the complete HTML code of your game (the entire &lt;!DOCTYPE html&gt;... file).</div>
+            <div class="text-[10px] text-white/50 mt-1 space-y-1">
+              <div>📋 <b>How to get the code:</b> In ChatGPT/Claude, click the <span class="text-cyan-300">Copy</span> button on the code block, then paste it here.</div>
+              <div>The code should start with <span class="font-mono text-cyan-300">&lt;!DOCTYPE html&gt;</span> or <span class="font-mono text-cyan-300">&lt;html&gt;</span></div>
+            </div>
           </div>
 
           <div class="flex gap-2 pt-2">
@@ -492,11 +541,12 @@
             <div class="pixelBox">
               <div class="miniTitle">4-step loop</div>
               <ol class="list-decimal pl-5 mt-2 text-sm text-white/80 space-y-2">
-                <li><b>Spin</b> the wheel.</li>
-                <li><b>Copy</b> the prompt payload.</li>
-                <li><b>Paste</b> into an LLM → get a single HTML game.</li>
-                <li><b>Win</b> or <b>lose</b> → log it.</li>
+                <li><b>Spin</b> the wheel, then <b>copy</b> the prompt.</li>
+                <li><b>Paste</b> into ChatGPT, Claude, or any AI.</li>
+                <li><b>Save</b> the code as a <span class="text-cyan-300">.html</span> file, then open it in your browser.</li>
+                <li><b>Play</b> the game → log your win or loss!</li>
               </ol>
+              <div class="text-xs text-white/50 mt-2 italic">💡 Press <span class="text-cyan-300">?</span> for detailed instructions on saving HTML files.</div>
             </div>
           </div>
 
@@ -518,10 +568,10 @@
 
             <div class="arcade-font text-xs text-neon-yellow">QUICK START</div>
             <div class="pixelBox">
-              <div class="text-sm text-white/80 leading-relaxed">
-                Press <span class="arcade-font text-neon-cyan text-[10px]">SPACE</span> to spin.
-                After the twist locks, hit <span class="arcade-font text-neon-cyan text-[10px]">COPY PROMPT</span>.
-                While the LLM works, open <span class="arcade-font text-neon-yellow text-[10px]">ARCADE LOUNGE</span>.
+              <div class="text-sm text-white/80 leading-relaxed space-y-2">
+                <div>Press <span class="arcade-font text-neon-cyan text-[10px]">SPACE</span> to spin, then <span class="arcade-font text-neon-cyan text-[10px]">COPY PROMPT</span>.</div>
+                <div>Paste into ChatGPT or Claude → save the code as a <span class="text-cyan-300">.html</span> file → open it in your browser to play!</div>
+                <div class="text-xs text-white/50 italic">Press <span class="text-cyan-300">?</span> anytime for a full guide on saving HTML files.</div>
               </div>
             </div>
 
@@ -556,45 +606,65 @@
       </div>
     </div>
     
-    <!-- Status Bar - Full Width -->
-    <div class="mt-3 w-full glass-panel rounded-xl p-3">
-      <div class="flex items-center justify-between gap-4 flex-wrap text-[10px] font-mono uppercase tracking-widest text-pink-400 opacity-85">
-        <span>Spin → Copy → Generate → Play → Win</span>
-        <span class="text-white/40">•</span>
-        <span>Keys: <span class="text-neon-cyan">SPACE</span> Spin • <span class="text-neon-cyan">C</span> Copy • <span class="text-neon-cyan">?</span> Help</span>
-      </div>
-    </div>
-    
-    <!-- Difficulty Mode Selector -->
-    <div class="mt-4 glass-panel rounded-xl p-3 flex items-center justify-between gap-4 flex-wrap">
-      <div class="flex items-center gap-3 flex-wrap">
-        <span class="text-[10px] uppercase tracking-widest text-white/70 arcade-font">DIFFICULTY:</span>
-        <div class="flex gap-2">
-          <button id="mode-normal" onclick="setDifficulty('normal')" 
-            class="px-4 py-2 rounded text-xs font-bold uppercase arcade-font transition-all border-2 border-green-500/50 bg-green-900/30 text-green-300 shadow-neon-green">
-            NORMAL (1x)
-          </button>
-          <button id="mode-chaos" onclick="setDifficulty('chaos')" 
-            class="px-4 py-2 rounded text-xs font-bold uppercase arcade-font transition-all border-2 border-yellow-500/30 bg-black/40 text-yellow-300 hover:border-yellow-500/50 hover:bg-yellow-900/20">
-            CHAOS (2x)
-          </button>
-          <button id="mode-brainrot" onclick="setDifficulty('brainrot')" 
-            class="px-4 py-2 rounded text-xs font-bold uppercase arcade-font transition-all border-2 border-pink-500/30 bg-black/40 text-pink-300 hover:border-pink-500/50 hover:bg-pink-900/20">
-            BRAINROT (3x)
-          </button>
+    <!-- Control Panel -->
+    <div class="mt-3 w-full glass-panel rounded-xl p-4 space-y-3">
+      <!-- Row 1: Difficulty + Format + Turn/Player -->
+      <div class="flex items-center justify-between gap-6 flex-wrap">
+        <!-- Left: Difficulty & Format -->
+        <div class="flex items-center gap-6 flex-wrap">
+          <!-- Difficulty -->
+          <div class="flex items-center gap-2">
+            <span class="text-[9px] uppercase tracking-wider text-white/40 arcade-font">Diff:</span>
+            <div class="flex gap-1">
+              <button id="mode-normal" onclick="setDifficulty('normal')" 
+                class="px-2.5 py-1 rounded text-[10px] font-bold uppercase arcade-font transition-all border-2 border-green-500/50 bg-green-900/30 text-green-300 shadow-neon-green">
+                NORMAL
+              </button>
+              <button id="mode-chaos" onclick="setDifficulty('chaos')" 
+                class="px-2.5 py-1 rounded text-[10px] font-bold uppercase arcade-font transition-all border-2 border-yellow-500/30 bg-black/40 text-yellow-300 hover:border-yellow-500/50 hover:bg-yellow-900/20">
+                CHAOS
+              </button>
+              <button id="mode-brainrot" onclick="setDifficulty('brainrot')" 
+                class="px-2.5 py-1 rounded text-[10px] font-bold uppercase arcade-font transition-all border-2 border-pink-500/30 bg-black/40 text-pink-300 hover:border-pink-500/50 hover:bg-pink-900/20">
+                BRAINROT
+              </button>
+            </div>
+          </div>
+          <!-- Format -->
+          <div class="flex items-center gap-2">
+            <span class="text-[9px] uppercase tracking-wider text-white/40 arcade-font">Format:</span>
+            <div class="flex gap-1">
+              <button id="format-html" onclick="setFormat('html')" 
+                class="px-2.5 py-1 rounded text-[10px] font-bold uppercase arcade-font transition-all border-2 border-cyan-500/50 bg-cyan-900/30 text-cyan-300 shadow-neon-cyan">
+                HTML
+              </button>
+              <button id="format-pico8" onclick="setFormat('pico8')" 
+                class="px-2.5 py-1 rounded text-[10px] font-bold uppercase arcade-font transition-all border-2 border-purple-500/30 bg-black/40 text-purple-300 hover:border-purple-500/50 hover:bg-purple-900/20">
+                PICO-8
+              </button>
+            </div>
+            <span id="formatHint" class="text-[9px] text-white/35">(.html)</span>
+          </div>
+        </div>
+        <!-- Right: Turn/Player -->
+        <div class="flex items-center gap-4 text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="text-white/35">Turn</span>
+            <span id="turnDisplay" class="font-bold text-neon-cyan">#1</span>
+            <span class="text-white/20">•</span>
+            <span id="totalTurnsDisplay" class="font-bold text-white/60">Round 1</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-white/35">Player</span>
+            <span id="currentPlayerDisplay" class="font-bold text-neon-pink">—</span>
+          </div>
         </div>
       </div>
-      <div class="flex items-center gap-3 flex-wrap">
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] uppercase tracking-widest text-white/70 arcade-font">TURN:</span>
-          <span id="turnDisplay" class="text-lg font-bold text-neon-cyan turn-display">#1</span>
-          <span class="text-[10px] text-white/60">•</span>
-          <span id="totalTurnsDisplay" class="text-lg font-bold text-white/80 turn-display">Round 1</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] uppercase tracking-widest text-white/70 arcade-font">PLAYER:</span>
-          <span id="currentPlayerDisplay" class="text-lg font-bold text-neon-pink turn-display">—</span>
-        </div>
+
+      <!-- Row 2: Status Bar -->
+      <div class="flex items-center justify-between gap-4 flex-wrap border-t border-white/10 pt-2.5 text-[9px] font-mono uppercase tracking-wider text-pink-400/70">
+        <span id="statusBarFlow">Spin → Copy → Paste in AI → Save as .html → Play!</span>
+        <span class="text-white/25">Keys: <span class="text-cyan-400/80">SPACE</span> Spin • <span class="text-cyan-400/80">C</span> Copy • <span class="text-cyan-400/80">?</span> Help</span>
       </div>
     </div>
   </header>
@@ -686,7 +756,7 @@
           <div>
             <label class="text-pink-500 text-xs font-bold uppercase tracking-widest">The Prompt Payload</label>
             <div class="text-[10px] uppercase tracking-widest text-white/45 mt-1">
-              Paste into your LLM → ask for <span class="text-neon-cyan">ONE HTML FILE</span> only.
+              Paste into ChatGPT/Claude → save the code as <span class="text-neon-cyan">.html</span> → open in browser. <span class="text-neon-yellow cursor-pointer hover:underline" onclick="openModal()">[?]</span>
             </div>
           </div>
 
@@ -717,6 +787,11 @@
             class="bg-black/60 hover:bg-black/40 border border-white/10 text-white px-4 py-2 text-xs font-bold uppercase rounded transition-all">
             Copy as MD
           </button>
+        </div>
+
+        <!-- Format-specific instructions -->
+        <div id="formatInstructions" class="mt-3 text-[11px] text-center py-2 px-3 rounded bg-black/40 border border-white/10">
+          <span class="text-cyan-400">Save as</span> <code class="bg-black/50 px-1.5 py-0.5 rounded text-cyan-300">mygame.html</code> <span class="text-white/60">and open in your browser</span>
         </div>
       </div>
     </div>
@@ -1921,9 +1996,12 @@
     }
 
     // ==========================================================
-    // PROMPT TEMPLATE + COPY
+    // PROMPT TEMPLATES + FORMAT SYSTEM
     // ==========================================================
-    const defaultTemplate = `Create a FUN, BEATABLE browser game in a single HTML file. 
+    let currentFormat = 'html';
+
+    const formatTemplates = {
+      html: `Create a FUN, BEATABLE browser game in a single HTML file. 
 
 Theme: {X}
 Genre: {Y}
@@ -1932,32 +2010,128 @@ Twist: {Z}
 CRITICAL REQUIREMENTS (game MUST be winnable and enjoyable):
 - FUN & ENGAGING: Game should be genuinely enjoyable to play
 - CLEAR WIN CONDITION: Player must be able to WIN through skill/challenge
-- BEATABLE: CompletAble in 2-5 minutes by skilled players
+- BEATABLE: Completable in 2-5 minutes by skilled players
 - PROGRESS FEEDBACK: Show clear progress toward victory
 - RESTART BUTTON: Must have a way to restart and try again
 - BALANCED DIFFICULTY: Challenging but not frustratingly hard
 - IMPRESSIVE DESIGN: Make bold, creative design choices that fit the theme perfectly
 - Polished UI with animations and visual feedback
-- Include short instructions + a “How to play” overlay.
+- Include short instructions + a "How to play" overlay
 - Keyboard and/or mouse controls
 - One HTML file only, no external assets
 
+CREATIVE APPROACHES (choose what fits best):
+- JavaScript + Canvas for action/arcade games
+- Pure CSS/SVG animations for puzzle/rhythm games (minimal or no JS)
+- Interactive fiction (Twine-style) for story-driven themes
+
 Recommended libraries (use CDN links):
-- Phaser — full-featured 2D engine (scenes, input, animations, cameras). Great for "real game structure."
-- Kaboom.js — tiny, fast to prototype arcade games; very "zero-shot friendly."
-- PixiJS — high-performance 2D rendering (WebGL); great visuals, less "game framework" out of the box.
-- p5.js — creative coding; super easy drawing + interaction; great for playful party games.
-- Matter.js — excellent 2D physics; pair with your own rendering (canvas) for satisfying collisions.
-- Planck.js — Box2D-style physics in JS (more "platformer physics" style).
-- Three.js — 3D (if you truly need it); heavier mental/model complexity.
-- Howler.js — audio management (music/sfx, mobile quirks). Often paired with vanilla canvas or Phaser.`;
+- Phaser — full-featured 2D engine (scenes, input, animations, cameras)
+- Kaboom.js — tiny, fast to prototype arcade games; very "zero-shot friendly"
+- PixiJS — high-performance 2D rendering (WebGL); great visuals
+- p5.js — creative coding; super easy drawing + interaction
+- Matter.js — excellent 2D physics; satisfying collisions
+- Planck.js — Box2D-style physics (platformer style)
+- Howler.js — audio management (music/sfx, mobile quirks)`,
+
+      pico8: `Create a complete, beatable, and fun PICO-8 game in Lua.
+
+Theme: {X}
+Genre: {Y}
+Twist: {Z}
+
+OUTPUT FORMAT:
+Start with exactly:
+pico-8 cartridge // http://www.pico-8.com
+version 42
+__lua__
+
+Then include all game code, followed by __gfx__, __sfx__, __map__ sections.
+
+PICO-8 REQUIREMENTS:
+- Screen: 128x128 pixels, 16 color palette (0-15)
+- Controls: Arrow keys + X (btn 4) / Z (btn 5)
+- Use PICO-8 API: _init(), _update(), _draw(), btn(), spr(), print(), sfx(), etc.
+- Include sprite data in __gfx__ section (hex characters 0-F, each = one pixel)
+- Include sound effects in __sfx__ section
+- Must have: score display, game over state, restart option
+
+SPRITE GUIDELINES:
+- Create simple 8x8 sprites for game objects
+- Use clear, readable pixel art
+- Max 256 sprites in the spritesheet
+
+MAKE IT FUN:
+- Chunky, charming pixel art aesthetic
+- Screen shake, particles, juice!
+- Satisfying sound effects (use sfx() for beeps/boops)
+- Clear visual feedback for all player actions
+- Smooth, responsive controls
+
+The game should feel polished and addictive within PICO-8's constraints!`
+    };
+
+    // Keep defaultTemplate for backwards compatibility
+    const defaultTemplate = formatTemplates.html;
+
+    function setFormat(format) {
+      currentFormat = format;
+      localStorage.setItem('pra_format', format);
+
+      // Update button styles
+      const htmlBtn = document.getElementById('format-html');
+      const pico8Btn = document.getElementById('format-pico8');
+      const formatHint = document.getElementById('formatHint');
+
+      if (!htmlBtn || !pico8Btn) return; // Elements not ready yet
+
+      if (format === 'html') {
+        htmlBtn.className = 'px-2.5 py-1 rounded text-[10px] font-bold uppercase arcade-font transition-all border-2 border-cyan-500/50 bg-cyan-900/30 text-cyan-300 shadow-neon-cyan';
+        pico8Btn.className = 'px-2.5 py-1 rounded text-[10px] font-bold uppercase arcade-font transition-all border-2 border-purple-500/30 bg-black/40 text-purple-300 hover:border-purple-500/50 hover:bg-purple-900/20';
+        if (formatHint) formatHint.textContent = '(.html)';
+      } else {
+        htmlBtn.className = 'px-2.5 py-1 rounded text-[10px] font-bold uppercase arcade-font transition-all border-2 border-cyan-500/30 bg-black/40 text-cyan-300 hover:border-cyan-500/50 hover:bg-cyan-900/20';
+        pico8Btn.className = 'px-2.5 py-1 rounded text-[10px] font-bold uppercase arcade-font transition-all border-2 border-purple-500/50 bg-purple-900/30 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.4)]';
+        if (formatHint) formatHint.textContent = '(.p8)';
+      }
+
+      // Update the template textarea if it's using the default
+      const templateEl = document.getElementById('promptTemplate');
+      if (templateEl) {
+        const currentVal = templateEl.value.trim();
+        const htmlTrimmed = formatTemplates.html.trim();
+        const pico8Trimmed = formatTemplates.pico8.trim();
+        
+        // Only swap if using one of the default templates
+        if (!currentVal || currentVal === htmlTrimmed || currentVal === pico8Trimmed) {
+          templateEl.value = formatTemplates[format];
+        }
+      }
+
+      // Update format-specific instructions
+      updateFormatInstructions();
+      updatePromptDisplay();
+    }
+
+    function updateFormatInstructions() {
+      const instructionEl = document.getElementById('formatInstructions');
+      const statusBarEl = document.getElementById('statusBarFlow');
+
+      if (currentFormat === 'html') {
+        if (instructionEl) instructionEl.innerHTML = `<span class="text-cyan-400">Save as</span> <code class="bg-black/50 px-1.5 py-0.5 rounded text-cyan-300">mygame.html</code> <span class="text-white/60">and open in your browser</span>`;
+        if (statusBarEl) statusBarEl.textContent = 'Spin → Copy → Paste in AI → Save as .html → Play!';
+      } else {
+        if (instructionEl) instructionEl.innerHTML = `<span class="text-purple-400">Save as</span> <code class="bg-black/50 px-1.5 py-0.5 rounded text-purple-300">mygame.p8</code> <span class="text-white/60">and drag into</span> <a href="https://www.pico-8-edu.com" target="_blank" class="text-purple-400 hover:text-purple-300 underline">pico-8-edu.com</a>`;
+        if (statusBarEl) statusBarEl.textContent = 'Spin → Copy → Paste in AI → Save as .p8 → Play!';
+      }
+    }
 
     function updatePromptDisplay(){
       const templateEl = document.getElementById('promptTemplate');
       const finalEl = document.getElementById('finalPrompt');
       if (!templateEl || !finalEl) return;
 
-      const template = templateEl.value || defaultTemplate;
+      const template = templateEl.value || formatTemplates[currentFormat] || defaultTemplate;
       let final = template
         .replace("{X}", currentTheme || "{X}")
         .replace("{Y}", currentGenre || "{Y}")
@@ -2677,14 +2851,19 @@ Recommended libraries (use CDN links):
       const diff = localStorage.getItem("pra_difficulty") || "normal";
       setDifficulty(diff);
 
+      // Load format
+      const fmt = localStorage.getItem("pra_format") || "html";
+      setFormat(fmt);
+
       // Load turn state
       currentTurn = parseInt(localStorage.getItem("pra_currentTurn") || "1", 10);
       totalTurns = parseInt(localStorage.getItem("pra_totalTurns") || "0", 10);
       if (currentTurn < 1) currentTurn = 1;
       if (totalTurns < currentTurn) totalTurns = currentTurn;
 
-      // Template
-      const tpl = localStorage.getItem("pra_template") || defaultTemplate;
+      // Template (use format-specific default if no custom template saved)
+      const savedTemplate = localStorage.getItem("pra_template");
+      const tpl = savedTemplate || formatTemplates[currentFormat] || defaultTemplate;
       document.getElementById("promptTemplate").value = tpl;
 
       // Players (load before updating turn display)
