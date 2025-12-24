@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧞 The Lost Lamp - A Musical Hangman</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --gold: #ffd700;
+            --purple-dark: #1a0a2e;
+            --purple-mid: #3d1a5c;
+            --purple-light: #6b3fa0;
+            --cyan-glow: #00ffff;
+            --pink-glow: #ff69b4;
+            --magic-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        body {
+            min-height: 100vh;
+            background: var(--purple-dark);
+            font-family: 'Quicksand', sans-serif;
+            color: white;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Starfield Background */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        /* Main Container */
+        .game-container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            width: 95%;
+            padding: 30px;
+            background: rgba(61, 26, 92, 0.6);
+            border-radius: 30px;
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 
+                0 0 60px rgba(107, 63, 160, 0.5),
+                inset 0 0 60px rgba(0, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--gold), #fff, var(--gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            color: var(--cyan-glow);
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .progress-note {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+        
+        .progress-note.completed {
+            background: linear-gradient(135deg, var(--gold), #ff8c00);
+            border-color: var(--gold);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            animation: noteComplete 0.6s ease;
+        }
+        
+        .progress-note.current {
+            border-color: var(--cyan-glow);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes noteComplete {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3) rotate(10deg); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8); }
+        }
+        
+        /* Genie Display */
+        .genie-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            margin: 20px 0;
+        }
+        
+        .genie-container {
+            position: relative;
+            width: 180px;
+            height: 200px;
+        }
+        
+        .genie {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: all 0.5s ease;
+        }
+        
+        .genie-body {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 120px;
+            background: linear-gradient(180deg, var(--cyan-glow), var(--purple-light), transparent);
+            border-radius: 40px 40px 50% 50%;
+            opacity: var(--genie-opacity, 1);
+            filter: blur(var(--genie-blur, 0px));
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .genie-head {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle at 30% 30%, var(--cyan-glow), var(--purple-light));
+            border-radius: 50%;
+            opacity: var(--genie-opacity, 1);
+            filter: blur(var(--genie-blur, 0px));
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .genie-face {
+            position: absolute;
+            top: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        .genie-aura {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            opacity: var(--genie-opacity, 1);
+            animation: auraGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+        
+        @keyframes auraGlow {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+        }
+        
+        /* Music Visualizer */
+        .music-visualizer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
+            height: 80px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .music-bar {
+            width: 8px;
+            background: linear-gradient(to top, var(--purple-light), var(--cyan-glow));
+            border-radius: 4px;
+            transition: height 0.1s ease;
+            min-height: 5px;
+        }
+        
+        .music-bar.wrong {
+            background: linear-gradient(to top, #ff4444, #ff8888) !important;
+        }
+        
+        .music-bar.correct {
+            background: linear-gradient(to top, var(--gold), #fff) !important;
+        }
+        
+        /* Lives Display */
+        .lives-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .lives-label {
+            color: var(--gold);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .lives {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .life {
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 5px var(--gold));
+        }
+        
+        .life.lost {
+            opacity: 0.2;
+            filter: grayscale(1);
+            transform: scale(0.8);
+        }
+        
+        /* Word Display */
+        .word-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .word-hint {
+            color: var(--pink-glow);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        
+        .word-display {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .letter-slot {
+            width: 50px;
+            height: 60px;
+            border-bottom: 4px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: white;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .letter-slot.revealed {
+            animation: revealLetter 0.5s ease;
+            color: var(--cyan-glow);
+            text-shadow: 0 0 10px var(--cyan-glow);
+        }
+        
+        .letter-slot.space {
+            border: none;
+            width: 30px;
+        }
+        
+        @keyframes revealLetter {
+            0% { transform: scale(0) rotate(-180deg); }
+            50% { transform: scale(1.3) rotate(10deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+        
+        /* Keyboard */
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .keyboard-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .key {
+            width: 45px;
+            height: 50px;
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            background: rgba(107, 63, 160, 0.5);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            font-family: 'Cinzel', serif;
+        }
+        
+        .key:hover:not(.used) {
+            background: rgba(255, 215, 0, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+        
+        .key.correct {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border-color: #28a745;
+            animation: keyCorrect 0.4s ease;
+        }
+        
+        .key.wrong {
+            background: linear-gradient(135deg, #dc3545, #ff6b6b);
+            border-color: #dc3545;
+            opacity: 0.5;
+        }
+        
+        .key.used {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        @keyframes keyCorrect {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            font-family: 'Cinzel', serif;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), #ff8c00);
+            color: var(--purple-dark);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--cyan-glow);
+            color: var(--cyan-glow);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(0, 255, 255, 0.1);
+        }
+        
+        /* Overlays */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 10, 46, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+        
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .overlay-content {
+            max-width: 500px;
+            width: 90%;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(61, 26, 92, 0.9), rgba(107, 63, 160, 0.9));
+            border-radius: 30px;
+            border: 3px solid var(--gold);
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.4s ease;
+        }
+        
+        .overlay.active .overlay-content {
+            transform: scale(1);
+        }
+        
+        .overlay h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+        
+        .overlay p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .overlay .emoji-large {
+            font-size: 4rem;
+            margin: 20px 0;
+        }
+        
+        .overlay .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        /* Help Button */
+        .help-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(107, 63, 160, 0.8);
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+        
+        .help-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        /* Sound Toggle */
+        .sound-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(107, 63, 160, 0.8);
+            border: 2px solid var(--cyan-glow);
+            color: var(--cyan-glow);
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+        
+        .sound-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .sound-btn.muted {
+            opacity: 0.5;
+        }
+        
+        /* Win Animation */
+        .lamp-found {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            z-index: 200;
+            animation: lampAppear 1s ease forwards;
+            text-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+        }
+        
+        @keyframes lampAppear {
+            0% { 
+                transform: translate(-50%, -50%) scale(0) rotate(-180deg); 
+                opacity: 0;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.5) rotate(20deg); 
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1) rotate(0); 
+                opacity: 1;
+            }
+        }
+        
+        /* Narrator Message */
+        .narrator {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-top: 20px;
+            border-left: 4px solid var(--pink-glow);
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.9);
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .narrator span {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+            z-index: 150;
+        }
+        
+        /* How to Play List */
+        .how-to-list {
+            text-align: left;
+            margin: 20px 0;
+        }
+        
+        .how-to-list li {
+            margin: 10px 0;
+            padding-left: 10px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .title { font-size: 1.8rem; }
+            .genie-section { flex-direction: column; gap: 20px; }
+            .key { width: 32px; height: 40px; font-size: 0.9rem; }
+            .letter-slot { width: 35px; height: 45px; font-size: 1.5rem; }
+            .progress-note { width: 40px; height: 40px; font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Stars Background -->
+    <div class="stars" id="stars"></div>
+    
+    <!-- Help Button -->
+    <button class="help-btn" id="helpBtn">?</button>
+    
+    <!-- Sound Toggle -->
+    <button class="sound-btn" id="soundBtn">🔊</button>
+    
+    <!-- Main Game Container -->
+    <div class="game-container">
+        <header class="header">
+            <h1 class="title">🧞 The Lost Lamp</h1>
+            <p class="subtitle">A Musical Hangman Adventure</p>
+        </header>
+        
+        <!-- Progress Notes -->
+        <div class="progress-container" id="progressNotes">
+            <div class="progress-note current">♪</div>
+            <div class="progress-note">♪</div>
+            <div class="progress-note">♪</div>
+            <div class="progress-note">♪</div>
+            <div class="progress-note">♪</div>
+        </div>
+        
+        <!-- Genie & Visualizer Section -->
+        <div class="genie-section">
+            <div class="lives-container">
+                <span class="lives-label">Essence</span>
+                <div class="lives" id="lives">
+                    <span class="life">✨</span>
+                    <span class="life">✨</span>
+                    <span class="life">✨</span>
+                    <span class="life">✨</span>
+                    <span class="life">✨</span>
+                    <span class="life">✨</span>
+                </div>
+            </div>
+            
+            <div class="genie-container">
+                <div class="genie" id="genie">
+                    <div class="genie-aura"></div>
+                    <div class="genie-body"></div>
+                    <div class="genie-head"></div>
+                    <div class="genie-face" id="genieFace">😊</div>
+                </div>
+            </div>
+            
+            <div class="music-visualizer" id="visualizer">
+                <!-- Bars generated by JS -->
+            </div>
+        </div>
+        
+        <!-- Word Display -->
+        <div class="word-section">
+            <p class="word-hint" id="hint">Loading...</p>
+            <div class="word-display" id="wordDisplay"></div>
+        </div>
+        
+        <!-- Keyboard -->
+        <div class="keyboard" id="keyboard"></div>
+        
+        <!-- Narrator -->
+        <div class="narrator" id="narrator">
+            <span>🎵 The melody calls out to you... Find the words to summon your lamp! 🎵</span>
+        </div>
+    </div>
+    
+    <!-- Start Overlay -->
+    <div class="overlay active" id="startOverlay">
+        <div class="overlay-content">
+            <h2>🧞 The Lost Lamp</h2>
+            <div class="emoji-large">🪔</div>
+            <p>Your magical lamp has been scattered across the mystical realms! Only by solving the <strong>Song of Summoning</strong> can you call it back.</p>
+            <p>Guess the letters to reveal 5 enchanted words. The music will guide you — listen for the melody of success or the discord of mistakes!</p>
+            <div class="buttons">
+                <button class="btn btn-primary" id="startBtn">Begin Quest</button>
+                <button class="btn btn-secondary" id="howToBtn">How to Play</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- How to Play Overlay -->
+    <div class="overlay" id="howToOverlay">
+        <div class="overlay-content">
+            <h2>📜 How to Play</h2>
+            <ul class="how-to-list">
+                <li>🔤 <strong>Guess letters</strong> using keyboard or clicking</li>
+                <li>✨ You have <strong>6 essence points</strong> (lives) per word</li>
+                <li>🎵 <strong>Music narrates</strong> your journey — harmony for success, discord for mistakes</li>
+                <li>🪔 Solve <strong>5 words</strong> to complete the Song of Summoning</li>
+                <li>👁️ Watch your genie — they fade with each wrong guess!</li>
+            </ul>
+            <div class="buttons">
+                <button class="btn btn-primary" id="closeHowTo">Got It!</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Win Overlay -->
+    <div class="overlay" id="winOverlay">
+        <div class="overlay-content">
+            <h2>🎉 LAMP FOUND!</h2>
+            <div class="emoji-large">🪔✨🧞</div>
+            <p>The Song of Summoning is complete! Your magical lamp has returned!</p>
+            <p id="winStats"></p>
+            <div class="buttons">
+                <button class="btn btn-primary" id="playAgainWin">Play Again</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lose Overlay -->
+    <div class="overlay" id="loseOverlay">
+        <div class="overlay-content">
+            <h2>💨 Essence Faded</h2>
+            <div class="emoji-large">😢</div>
+            <p>Your magical essence has faded... The word was: <strong id="revealWord"></strong></p>
+            <p>But don't despair! Every genie gets another chance...</p>
+            <div class="buttons">
+                <button class="btn btn-primary" id="tryAgain">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ AUDIO ENGINE ============
+        class MusicNarrator {
+            constructor() {
+                this.audioContext = null;
+                this.isMuted = false;
+                this.masterGain = null;
+                
+                // Pentatonic scale frequencies for pleasant sounds
+                this.scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25];
+                this.currentNote = 0;
+                
+                // Ambient drone
+                this.droneOsc = null;
+                this.droneGain = null;
+            }
+            
+            init() {
+                if (this.audioContext) return;
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                this.masterGain = this.audioContext.createGain();
+                this.masterGain.gain.value = 0.3;
+                this.masterGain.connect(this.audioContext.destination);
+                
+                this.startAmbient();
+            }
+            
+            startAmbient() {
+                if (this.droneOsc) return;
+                
+                this.droneOsc = this.audioContext.createOscillator();
+                this.droneGain = this.audioContext.createGain();
+                
+                this.droneOsc.type = 'sine';
+                this.droneOsc.frequency.value = 65.41; // Low C
+                this.droneGain.gain.value = 0.05;
+                
+                this.droneOsc.connect(this.droneGain);
+                this.droneGain.connect(this.masterGain);
+                this.droneOsc.start();
+            }
+            
+            playNote(frequency, duration = 0.3, type = 'sine') {
+                if (this.isMuted || !this.audioContext) return;
+                
+                const osc = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                
+                osc.type = type;
+                osc.frequency.value = frequency;
+                
+                gain.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                
+                osc.start();
+                osc.stop(this.audioContext.currentTime + duration);
+            }
+            
+            playCorrect() {
+                // Ascending happy notes
+                const note = this.scale[this.currentNote % this.scale.length];
+                this.playNote(note, 0.4, 'sine');
+                setTimeout(() => this.playNote(note * 1.5, 0.3, 'triangle'), 100);
+                this.currentNote++;
+                
+                // Sparkle effect
+                setTimeout(() => this.playNote(this.scale[7], 0.2, 'sine'), 200);
+            }
+            
+            playWrong() {
+                // Dissonant sound
+                this.playNote(130, 0.3, 'sawtooth');
+                this.playNote(138, 0.3, 'sawtooth');
+                
+                // Sad descending
+                setTimeout(() => this.playNote(200, 0.2, 'triangle'), 150);
+                setTimeout(() => this.playNote(150, 0.3, 'triangle'), 250);
+            }
+            
+            playWordComplete() {
+                // Victory fanfare
+                const fanfare = [392, 523.25, 659.25, 783.99];
+                fanfare.forEach((freq, i) => {
+                    setTimeout(() => this.playNote(freq, 0.4, 'sine'), i * 150);
+                });
+                this.currentNote = 0;
+            }
+            
+            playGameWin() {
+                // Epic victory melody
+                const melody = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
+                melody.forEach((freq, i) => {
+                    setTimeout(() => {
+                        this.playNote(freq, 0.5, 'sine');
+                        this.playNote(freq * 0.5, 0.5, 'sine');
+                    }, i * 200);
+                });
+            }
+            
+            playGameLose() {
+                // Sad melody
+                const melody = [400, 350, 300, 250];
+                melody.forEach((freq, i) => {
+                    setTimeout(() => this.playNote(freq, 0.5, 'triangle'), i * 300);
+                });
+            }
+            
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                if (this.droneGain) {
+                    this.droneGain.gain.value = this.isMuted ? 0 : 0.05;
+                }
+                return this.isMuted;
+            }
+        }
+        
+        // ============ VISUALIZER ============
+        class Visualizer {
+            constructor(container) {
+                this.container = container;
+                this.bars = [];
+                this.init();
+            }
+            
+            init() {
+                for (let i = 0; i < 15; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'music-bar';
+                    bar.style.height = '10px';
+                    this.container.appendChild(bar);
+                    this.bars.push(bar);
+                }
+                this.animate();
+            }
+            
+            animate() {
+                this.bars.forEach((bar, i) => {
+                    const height = 10 + Math.sin(Date.now() / 300 + i * 0.5) * 15 + Math.random() * 10;
+                    bar.style.height = height + 'px';
+                });
+                requestAnimationFrame(() => this.animate());
+            }
+            
+            pulse(type) {
+                this.bars.forEach((bar, i) => {
+                    setTimeout(() => {
+                        bar.classList.remove('correct', 'wrong');
+                        bar.classList.add(type);
+                        bar.style.height = '60px';
+                        setTimeout(() => {
+                            bar.classList.remove(type);
+                        }, 300);
+                    }, i * 30);
+                });
+            }
+        }
+        
+        // ============ GAME ENGINE ============
+        class GenieGame {
+            constructor() {
+                this.words = [
+                    { word: 'WISHES', hint: '🌟 Three of these come with every lamp' },
+                    { word: 'MAGIC', hint: '✨ The force that makes genies powerful' },
+                    { word: 'BOTTLE', hint: '🫙 Another name for a genie\'s home' },
+                    { word: 'MASTER', hint: '👑 The one who rubs the lamp' },
+                    { word: 'GOLDEN', hint: '💛 The color of your precious lamp' },
+                    { word: 'DESERT', hint: '🏜️ Where many lamps are found' },
+                    { word: 'SPIRIT', hint: '👻 What a genie truly is' },
+                    { word: 'COSMIC', hint: '🌌 Your powers span across this realm' },
+                    { word: 'SMOKE', hint: '💨 You emerge in a puff of this' },
+                    { word: 'ANCIENT', hint: '📜 How old most genies are' }
+                ];
+                
+                this.narratorMessages = {
+                    start: [
+                        "🎵 The melody calls out to you... Find the words to summon your lamp! 🎵",
+                        "🎶 Listen closely... the music knows the way home... 🎶",
+                        "🎵 Each letter brings you closer to your lamp! 🎵"
+                    ],
+                    correct: [
+                        "🎶 Yes! The harmony grows stronger! 🎶",
+                        "🎵 Beautiful! The melody remembers you! 🎵",
+                        "✨ The music sings with joy! ✨",
+                        "🎶 Perfect note! Keep going! 🎶"
+                    ],
+                    wrong: [
+                        "🎵 A discordant note... but don't give up! 🎵",
+                        "💔 The melody falters... try another path... 💔",
+                        "🎶 That note doesn't fit... listen again... 🎶",
+                        "😟 The song grows weaker... choose wisely... 😟"
+                    ],
+                    wordComplete: [
+                        "🎉 A verse complete! The lamp draws nearer! 🎉",
+                        "✨ Magnificent! The Song of Summoning grows! ✨",
+                        "🎵 The magic intensifies! Your lamp feels you! 🎵"
+                    ],
+                    almostDone: [
+                        "🪔 You're so close! One more word! 🪔",
+                        "✨ The lamp glows in the distance! ✨"
+                    ]
+                };
+                
+                this.currentWordIndex = 0;
+                this.currentWord = '';
+                this.guessedLetters = new Set();
+                this.wrongGuesses = 0;
+                this.maxWrong = 6;
+                this.wordsCompleted = 0;
+                this.totalWordsNeeded = 5;
+                this.totalGuesses = 0;
+                this.totalWrong = 0;
+                
+                this.music = new MusicNarrator();
+                this.visualizer = null;
+                
+                this.init();
+            }
+            
+            init() {
+                this.createStars();
+                this.createKeyboard();
+                this.visualizer = new Visualizer(document.getElementById('visualizer'));
+                this.bindEvents();
+                this.shuffleWords();
+            }
+            
+            createStars() {
+                const starsContainer = document.getElementById('stars');
+                for (let i = 0; i < 100; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.width = Math.random() * 3 + 1 + 'px';
+                    star.style.height = star.style.width;
+                    star.style.animationDelay = Math.random() * 2 + 's';
+                    starsContainer.appendChild(star);
+                }
+            }
+            
+            createKeyboard() {
+                const keyboard = document.getElementById('keyboard');
+                const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+                
+                rows.forEach(row => {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'keyboard-row';
+                    
+                    row.split('').forEach(letter => {
+                        const key = document.createElement('button');
+                        key.className = 'key';
+                        key.textContent = letter;
+                        key.dataset.letter = letter;
+                        key.addEventListener('click', () => this.guess(letter));
+                        rowDiv.appendChild(key);
+                    });
+                    
+                    keyboard.appendChild(rowDiv);
+                });
+            }
+            
+            bindEvents() {
+                document.getElementById('startBtn').addEventListener('click', () => this.startGame());
+                document.getElementById('howToBtn').addEventListener('click', () => this.showOverlay('howToOverlay'));
+                document.getElementById('closeHowTo').addEventListener('click', () => this.hideOverlay('howToOverlay'));
+                document.getElementById('helpBtn').addEventListener('click', () => this.showOverlay('howToOverlay'));
+                document.getElementById('playAgainWin').addEventListener('click', () => this.restartGame());
+                document.getElementById('tryAgain').addEventListener('click', () => this.restartGame());
+                
+                document.getElementById('soundBtn').addEventListener('click', () => {
+                    const muted = this.music.toggleMute();
+                    document.getElementById('soundBtn').textContent = muted ? '🔇' : '🔊';
+                    document.getElementById('soundBtn').classList.toggle('muted', muted);
+                });
+                
+                document.addEventListener('keydown', (e) => {
+                    const letter = e.key.toUpperCase();
+                    if (/^[A-Z]$/.test(letter) && !this.guessedLetters.has(letter)) {
+                        this.guess(letter);
+                    }
+                });
+            }
+            
+            shuffleWords() {
+                for (let i = this.words.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [this.words[i], this.words[j]] = [this.words[j], this.words[i]];
+                }
+            }
+            
+            startGame() {
+                this.music.init();
+                this.hideOverlay('startOverlay');
+                this.loadWord();
+                this.updateNarrator(this.getRandomMessage('start'));
+            }
+            
+            restartGame() {
+                this.hideOverlay('winOverlay');
+                this.hideOverlay('loseOverlay');
+                
+                this.wordsCompleted = 0;
+                this.totalGuesses = 0;
+                this.totalWrong = 0;
+                this.currentWordIndex = 0;
+                this.shuffleWords();
+                
+                this.updateProgress();
+                this.loadWord();
+                this.updateNarrator(this.getRandomMessage('start'));
+            }
+            
+            loadWord() {
+                const wordData = this.words[this.currentWordIndex % this.words.length];
+                this.currentWord = wordData.word;
+                this.guessedLetters.clear();
+                this.wrongGuesses = 0;
+                
+                document.getElementById('hint').textContent = wordData.hint;
+                this.renderWord();
+                this.resetKeyboard();
+                this.updateLives();
+                this.updateGenie();
+            }
+            
+            renderWord() {
+                const display = document.getElementById('wordDisplay');
+                display.innerHTML = '';
+                
+                this.currentWord.split('').forEach((letter, i) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'letter-slot';
+                    
+                    if (letter === ' ') {
+                        slot.classList.add('space');
+                    } else if (this.guessedLetters.has(letter)) {
+                        slot.textContent = letter;
+                        slot.classList.add('revealed');
+                    }
+                    
+                    display.appendChild(slot);
+                });
+            }
+            
+            resetKeyboard() {
+                document.querySelectorAll('.key').forEach(key => {
+                    key.className = 'key';
+                });
+            }
+            
+            guess(letter) {
+                if (this.guessedLetters.has(letter)) return;
+                
+                this.guessedLetters.add(letter);
+                this.totalGuesses++;
+                
+                const key = document.querySelector(`.key[data-letter="${letter}"]`);
+                
+                if (this.currentWord.includes(letter)) {
+                    // Correct guess
+                    key.classList.add('correct', 'used');
+                    this.music.playCorrect();
+                    this.visualizer.pulse('correct');
+                    this.updateNarrator(this.getRandomMessage('correct'));
+                    this.renderWord();
+                    
+                    if (this.isWordComplete()) {
+                        this.wordWon();
+                    }
+                } else {
+                    // Wrong guess
+                    key.classList.add('wrong', 'used');
+                    this.wrongGuesses++;
+                    this.totalWrong++;
+                    this.music.playWrong();
+                    this.visualizer.pulse('wrong');
+                    this.updateNarrator(this.getRandomMessage('wrong'));
+                    this.updateLives();
+                    this.updateGenie();
+                    
+                    if (this.wrongGuesses >= this.maxWrong) {
+                        this.gameLose();
+                    }
+                }
+            }
+            
+            isWordComplete() {
+                return this.currentWord.split('').every(
+                    letter => letter === ' ' || this.guessedLetters.has(letter)
+                );
+            }
+            
+            wordWon() {
+                this.wordsCompleted++;
+                this.music.playWordComplete();
+                this.updateProgress();
+                
+                if (this.wordsCompleted >= this.totalWordsNeeded) {
+                    setTimeout(() => this.gameWin(), 1000);
+                } else {
+                    if (this.wordsCompleted === this.totalWordsNeeded - 1) {
+                        this.updateNarrator(this.getRandomMessage('almostDone'));
+                    } else {
+                        this.updateNarrator(this.getRandomMessage('wordComplete'));
+                    }
+                    this.currentWordIndex++;
+                    setTimeout(() => this.loadWord(), 1500);
+                }
+            }
+            
+            updateProgress() {
+                const notes = document.querySelectorAll('.progress-note');
+                notes.forEach((note, i) => {
+                    note.classList.remove('completed', 'current');
+                    if (i < this.wordsCompleted) {
+                        note.classList.add('completed');
+                        note.textContent = '♫';
+                    } else if (i === this.wordsCompleted) {
+                        note.classList.add('current');
+                        note.textContent = '♪';
+                    } else {
+                        note.textContent = '♪';
+                    }
+                });
+            }
+            
+            updateLives() {
+                const lives = document.querySelectorAll('.life');
+                lives.forEach((life, i) => {
+                    if (i < this.maxWrong - this.wrongGuesses) {
+                        life.classList.remove('lost');
+                    } else {
+                        life.classList.add('lost');
+                    }
+                });
+            }
+            
+            updateGenie() {
+                const genie = document.getElementById('genie');
+                const face = document.getElementById('genieFace');
+                const opacity = 1 - (this.wrongGuesses / this.maxWrong) * 0.8;
+                const blur = this.wrongGuesses * 1.5;
+                
+                genie.style.setProperty('--genie-opacity', opacity);
+                genie.style.setProperty('--genie-blur', blur + 'px');
+                
+                const faces = ['😊', '🙂', '😐', '😟', '😰', '😨', '😱'];
+                face.textContent = faces[Math.min(this.wrongGuesses, faces.length - 1)];
+            }
+            
+            updateNarrator(message) {
+                const narrator = document.getElementById('narrator');
+                narrator.innerHTML = `<span>${message}</span>`;
+            }
+            
+            getRandomMessage(type) {
+                const messages = this.narratorMessages[type];
+                return messages[Math.floor(Math.random() * messages.length)];
+            }
+            
+            gameWin() {
+                this.music.playGameWin();
+                this.createConfetti();
+                
+                // Show lamp animation
+                const lamp = document.createElement('div');
+                lamp.className = 'lamp-found';
+                lamp.textContent = '🪔';
+                document.body.appendChild(lamp);
+                
+                setTimeout(() => {
+                    lamp.remove();
+                    const accuracy = Math.round((1 - this.totalWrong / this.totalGuesses) * 100);
+                    document.getElementById('winStats').textContent = 
+                        `Accuracy: ${accuracy}% | Total guesses: ${this.totalGuesses}`;
+                    this.showOverlay('winOverlay');
+                }, 2000);
+            }
+            
+            gameLose() {
+                this.music.playGameLose();
+                document.getElementById('revealWord').textContent = this.currentWord;
+                setTimeout(() => this.showOverlay('loseOverlay'), 500);
+            }
+            
+            createConfetti() {
+                const colors = ['#ffd700', '#ff69b4', '#00ffff', '#ff8c00', '#9370db'];
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = '-20px';
+                    confetti.style.width = Math.random() * 10 + 5 + 'px';
+                    confetti.style.height = confetti.style.width;
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    document.body.appendChild(confetti);
+                    
+                    const animation = confetti.animate([
+                        { top: '-20px', opacity: 1 },
+                        { top: '100vh', opacity: 0 }
+                    ], {
+                        duration: Math.random() * 2000 + 2000,
+                        easing: 'ease-in'
+                    });
+                    
+                    animation.onfinish = () => confetti.remove();
+                }
+            }
+            
+            showOverlay(id) {
+                document.getElementById(id).classList.add('active');
+            }
+            
+            hideOverlay(id) {
+                document.getElementById(id).classList.remove('active');
+            }
+        }
+        
+        // Initialize game
+        const game = new GenieGame();
+    </script>
+</body>
+</html>

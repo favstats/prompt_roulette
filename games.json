@@ -54,6 +54,17 @@
       "url": "https://favstats.github.io/prompt_roulette/games/furry-con-crisis-manager.html",
       "description": "You're Dave — a totally normal human hired to manage FurryCon 2024. Problem: the attendees are getting dangerously hyped and chaos is rising! Armed with your trusty Hydration Cannon, blast water bottles at overheated furries (wolves, foxes, dragons, rabbits, and more) to cool them down before the convention descends into total mayhem.",
       "submitted": "2025-12-24"
+    },
+    {
+      "title": "The Lost Lamp",
+      "author": "favstats",
+      "theme": "You're a genie whose lamp gets lost and you must find it",
+      "genre": "Hangman with a twist",
+      "twist": "Music is the narrator",
+      "difficulty": "normal",
+      "url": "https://favstats.github.io/prompt_roulette/games/the-lost-lamp.html",
+      "description": "The Lost Lamp is a musical hangman game where you play as a genie whose magical lamp has been scattered across mystical realms. Solve five enchanted words to complete the \"Song of Summoning\" and call your lamp home. The twist? Music narrates your journey—correct guesses build a harmonious melody while mistakes create dissonance. Watch your genie fade as essence drains, listen for the music's guidance, and restore the magic before it's too late.",
+      "submitted": "2025-12-24"
     }
   ]
 }
