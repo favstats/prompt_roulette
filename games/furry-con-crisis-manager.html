@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 FURRY CON CRISIS MANAGER 🎯</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            overflow: hidden; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            cursor: crosshair;
+        }
+        #gameCanvas { display: block; }
+        
+        /* HUD */
+        #hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .hud-panel {
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(30,30,50,0.9));
+            border: 2px solid #ff6b9d;
+            border-radius: 15px;
+            padding: 15px 25px;
+            color: white;
+            box-shadow: 0 0 20px rgba(255,107,157,0.3);
+        }
+        .hud-label { font-size: 12px; color: #ff6b9d; text-transform: uppercase; letter-spacing: 2px; }
+        .hud-value { font-size: 28px; font-weight: bold; text-shadow: 0 0 10px currentColor; }
+        #score .hud-value { color: #4ade80; }
+        #chaos .hud-value { color: #f87171; }
+        #ammo .hud-value { color: #60a5fa; }
+        
+        /* Chaos Bar */
+        #chaosBar {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 30px;
+            background: rgba(0,0,0,0.7);
+            border: 3px solid #f87171;
+            border-radius: 15px;
+            overflow: hidden;
+            z-index: 100;
+        }
+        #chaosBarFill {
+            height: 100%;
+            background: linear-gradient(90deg, #fbbf24, #f87171, #dc2626);
+            transition: width 0.3s ease;
+            box-shadow: 0 0 20px #f87171;
+        }
+        #chaosLabel {
+            position: fixed;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #f87171;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            z-index: 100;
+        }
+        
+        /* Crosshair */
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
+        }
+        #crosshair::before {
+            width: 20px; height: 3px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #crosshair::after {
+            width: 3px; height: 20px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        /* Hit marker */
+        .hit-marker {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: #4ade80;
+            pointer-events: none;
+            animation: hitPop 0.3s ease-out forwards;
+            z-index: 101;
+        }
+        @keyframes hitPop {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        }
+        
+        /* Message popup */
+        #message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: white;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+            z-index: 102;
+        }
+        
+        /* Screens */
+        .screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+        }
+        .screen.hidden { display: none; }
+        
+        .title {
+            font-size: 48px;
+            color: #ff6b9d;
+            text-shadow: 0 0 30px #ff6b9d;
+            margin-bottom: 10px;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            color: #a78bfa;
+            margin-bottom: 40px;
+        }
+        
+        .btn {
+            padding: 20px 60px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #ff6b9d, #c026d3);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(255,107,157,0.4);
+            margin: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255,107,157,0.6);
+        }
+        
+        .instructions {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #a78bfa;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px;
+            max-width: 600px;
+            color: white;
+            line-height: 1.8;
+        }
+        .instructions h3 {
+            color: #ff6b9d;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        .instructions .key {
+            display: inline-block;
+            background: #3b82f6;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 0 3px;
+        }
+        
+        /* Win/Lose specific */
+        #winScreen .title { color: #4ade80; text-shadow: 0 0 30px #4ade80; }
+        #loseScreen .title { color: #f87171; text-shadow: 0 0 30px #f87171; }
+        
+        .final-score {
+            font-size: 36px;
+            color: #fbbf24;
+            margin: 20px;
+        }
+        
+        .twist-reveal {
+            font-size: 18px;
+            color: #a78bfa;
+            font-style: italic;
+            margin: 20px;
+            max-width: 500px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        
+        /* Furry indicators */
+        #furryCount {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #a78bfa;
+            border-radius: 15px;
+            padding: 15px 30px;
+            color: white;
+            z-index: 100;
+        }
+        
+        /* Damage flash */
+        #damageFlash {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 50%, rgba(255,0,0,0.3) 100%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 99;
+        }
+        
+        /* Mini announcements */
+        .announcement {
+            position: fixed;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            color: #fbbf24;
+            text-shadow: 0 0 20px #fbbf24;
+            animation: announcePop 1.5s ease-out forwards;
+            z-index: 101;
+        }
+        @keyframes announcePop {
+            0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+            20% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+            80% { transform: translateX(-50%) scale(1); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen" class="screen">
+        <div class="title">🎯 FURRY CON CRISIS MANAGER 🎯</div>
+        <div class="subtitle">A First-Person Hydration Experience</div>
+        
+        <div class="instructions">
+            <h3>📋 SITUATION BRIEFING</h3>
+            <p>You're <strong>Dave</strong>, a regular human hired to manage <strong>FurryCon 2024</strong>.</p>
+            <p>Problem: The furries are getting <strong>WAY too hyped</strong> and the convention is descending into chaos!</p>
+            <p>Your mission: Use your <strong>Hydration Cannon</strong> to cool down <strong>25 overheated furries</strong> before chaos reaches 100%!</p>
+            <br>
+            <h3>🎮 CONTROLS</h3>
+            <p><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> - Move around</p>
+            <p><span class="key">MOUSE</span> - Look around</p>
+            <p><span class="key">LEFT CLICK</span> - Shoot water bottle</p>
+            <p><span class="key">R</span> - Reload (auto-reloads too)</p>
+            <p><span class="key">ESC</span> - Pause game</p>
+        </div>
+        
+        <button class="btn" onclick="startGame()">🚀 START MANAGING!</button>
+    </div>
+    
+    <div id="winScreen" class="screen hidden">
+        <div class="title">🎉 CONVENTION SAVED! 🎉</div>
+        <div class="final-score">Furries Hydrated: <span id="finalScore">0</span></div>
+        <div class="twist-reveal">
+            "Great job out there, Dave!" says your boss.<br>
+            "You know, you're pretty good at this. Ever consider... joining the fandom?"<br>
+            <br>
+            <em>You nervously laugh. You're definitely NOT a furry.<br>
+            ...Right?</em>
+        </div>
+        <button class="btn" onclick="restartGame()">🔄 Play Again</button>
+    </div>
+    
+    <div id="loseScreen" class="screen hidden">
+        <div class="title">💥 TOTAL CHAOS! 💥</div>
+        <div class="final-score">Furries Hydrated: <span id="loseScore">0</span></div>
+        <div class="twist-reveal">
+            The convention descends into absolute mayhem.<br>
+            Security is called. The news arrives.<br>
+            Your boss sighs: "Maybe next year, Dave."<br>
+            <br>
+            <em>At least you're still not a furry... officially.</em>
+        </div>
+        <button class="btn" onclick="restartGame()">🔄 Try Again</button>
+    </div>
+    
+    <div id="hud">
+        <div id="score" class="hud-panel">
+            <div class="hud-label">Hydrated</div>
+            <div class="hud-value"><span id="scoreValue">0</span> / 25</div>
+        </div>
+        <div id="ammo" class="hud-panel">
+            <div class="hud-label">Water Bottles</div>
+            <div class="hud-value"><span id="ammoValue">10</span> / 10</div>
+        </div>
+        <div id="chaos" class="hud-panel">
+            <div class="hud-label">Chaos Level</div>
+            <div class="hud-value"><span id="chaosValue">0</span>%</div>
+        </div>
+    </div>
+    
+    <div id="chaosLabel">⚠️ CONVENTION CHAOS METER ⚠️</div>
+    <div id="chaosBar"><div id="chaosBarFill" style="width: 0%"></div></div>
+    
+    <div id="furryCount">🎭 Active Furries: <span id="activeFurries">0</span></div>
+    
+    <div id="crosshair"></div>
+    <div id="damageFlash"></div>
+    <div id="message"></div>
+    
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        // Game state
+        let scene, camera, renderer;
+        let player = { x: 0, y: 2, z: 0, yaw: 0, pitch: 0, speed: 0.15 };
+        let keys = {};
+        let furries = [];
+        let projectiles = [];
+        let score = 0;
+        let chaos = 0;
+        let ammo = 10;
+        let maxAmmo = 10;
+        let gameRunning = false;
+        let gamePaused = false;
+        let targetScore = 25;
+        let reloading = false;
+        
+        // Furry types with colors and names
+        const furryTypes = [
+            { name: 'Wolf', color: 0x607d8b, earType: 'pointed', speed: 0.06 },
+            { name: 'Fox', color: 0xff7043, earType: 'pointed', speed: 0.08 },
+            { name: 'Cat', color: 0x9575cd, earType: 'pointed', speed: 0.07 },
+            { name: 'Dog', color: 0x8d6e63, earType: 'floppy', speed: 0.05 },
+            { name: 'Rabbit', color: 0xf48fb1, earType: 'long', speed: 0.09 },
+            { name: 'Dragon', color: 0x66bb6a, earType: 'horns', speed: 0.04 },
+            { name: 'Deer', color: 0xffcc80, earType: 'antlers', speed: 0.06 },
+            { name: 'Raccoon', color: 0x78909c, earType: 'round', speed: 0.07 },
+        ];
+        
+        // Initialize Three.js
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+            scene.fog = new THREE.Fog(0x1a1a2e, 20, 60);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 2, 0);
+            
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            
+            // Lighting
+            const ambient = new THREE.AmbientLight(0x404060, 0.5);
+            scene.add(ambient);
+            
+            const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            mainLight.position.set(10, 20, 10);
+            mainLight.castShadow = true;
+            scene.add(mainLight);
+            
+            // Colored spotlights for con atmosphere
+            const colors = [0xff6b9d, 0x4ade80, 0x60a5fa, 0xfbbf24, 0xa78bfa];
+            colors.forEach((color, i) => {
+                const spot = new THREE.PointLight(color, 0.5, 30);
+                spot.position.set(
+                    Math.cos(i * Math.PI * 2 / colors.length) * 20,
+                    10,
+                    Math.sin(i * Math.PI * 2 / colors.length) * 20
+                );
+                scene.add(spot);
+            });
+            
+            createEnvironment();
+            
+            // Event listeners
+            document.addEventListener('keydown', (e) => {
+                keys[e.code] = true;
+                if (e.code === 'Escape' && gameRunning) togglePause();
+                if (e.code === 'KeyR' && gameRunning && !gamePaused && !reloading) reload();
+            });
+            document.addEventListener('keyup', (e) => keys[e.code] = false);
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('click', shoot);
+            document.addEventListener('contextmenu', (e) => e.preventDefault());
+            window.addEventListener('resize', onResize);
+            
+            animate();
+        }
+        
+        function createEnvironment() {
+            // Floor - convention center carpet
+            const floorGeo = new THREE.PlaneGeometry(80, 80);
+            const floorMat = new THREE.MeshStandardMaterial({ 
+                color: 0x2d3748,
+                roughness: 0.8
+            });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+            
+            // Carpet pattern
+            for (let x = -35; x <= 35; x += 5) {
+                for (let z = -35; z <= 35; z += 5) {
+                    if ((x + z) % 10 === 0) {
+                        const patternGeo = new THREE.PlaneGeometry(4.5, 4.5);
+                        const patternMat = new THREE.MeshStandardMaterial({ color: 0x3d4758 });
+                        const pattern = new THREE.Mesh(patternGeo, patternMat);
+                        pattern.rotation.x = -Math.PI / 2;
+                        pattern.position.set(x, 0.01, z);
+                        scene.add(pattern);
+                    }
+                }
+            }
+            
+            // Walls
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x374151 });
+            const wallHeight = 12;
+            
+            // Create walls with windows
+            const wallPositions = [
+                { x: 0, z: -40, rotY: 0 },
+                { x: 0, z: 40, rotY: Math.PI },
+                { x: -40, z: 0, rotY: Math.PI / 2 },
+                { x: 40, z: 0, rotY: -Math.PI / 2 }
+            ];
+            
+            wallPositions.forEach(pos => {
+                const wallGeo = new THREE.BoxGeometry(80, wallHeight, 1);
+                const wall = new THREE.Mesh(wallGeo, wallMat);
+                wall.position.set(pos.x, wallHeight / 2, pos.z);
+                wall.rotation.y = pos.rotY;
+                scene.add(wall);
+            });
+            
+            // Convention booths
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                const radius = 15 + Math.random() * 10;
+                createBooth(
+                    Math.cos(angle) * radius,
+                    Math.sin(angle) * radius,
+                    furryTypes[i % furryTypes.length].color
+                );
+            }
+            
+            // Center stage
+            const stageGeo = new THREE.CylinderGeometry(8, 8, 1, 32);
+            const stageMat = new THREE.MeshStandardMaterial({ color: 0x6366f1 });
+            const stage = new THREE.Mesh(stageGeo, stageMat);
+            stage.position.y = 0.5;
+            scene.add(stage);
+            
+            // Stage decorations
+            const bannerGeo = new THREE.BoxGeometry(12, 4, 0.2);
+            const bannerMat = new THREE.MeshStandardMaterial({ color: 0xff6b9d });
+            const banner = new THREE.Mesh(bannerGeo, bannerMat);
+            banner.position.set(0, 8, 0);
+            scene.add(banner);
+            
+            // Pillars
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const pillar = createPillar();
+                pillar.position.set(Math.cos(angle) * 30, 0, Math.sin(angle) * 30);
+                scene.add(pillar);
+            }
+        }
+        
+        function createBooth(x, z, color) {
+            const group = new THREE.Group();
+            
+            // Table
+            const tableGeo = new THREE.BoxGeometry(4, 1, 2);
+            const tableMat = new THREE.MeshStandardMaterial({ color: 0x4b5563 });
+            const table = new THREE.Mesh(tableGeo, tableMat);
+            table.position.y = 0.5;
+            group.add(table);
+            
+            // Back wall
+            const backGeo = new THREE.BoxGeometry(4.5, 3, 0.2);
+            const backMat = new THREE.MeshStandardMaterial({ color: color });
+            const back = new THREE.Mesh(backGeo, backMat);
+            back.position.set(0, 2, -1);
+            group.add(back);
+            
+            group.position.set(x, 0, z);
+            group.rotation.y = Math.atan2(-x, -z);
+            scene.add(group);
+        }
+        
+        function createPillar() {
+            const group = new THREE.Group();
+            const pillarGeo = new THREE.CylinderGeometry(0.8, 1, 10, 8);
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x6b7280 });
+            const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+            pillar.position.y = 5;
+            pillar.castShadow = true;
+            group.add(pillar);
+            return group;
+        }
+        
+        function createFurry() {
+            const type = furryTypes[Math.floor(Math.random() * furryTypes.length)];
+            const group = new THREE.Group();
+            
+            // Body (cylinder + spheres for capsule shape)
+            const bodyMat = new THREE.MeshStandardMaterial({ color: type.color });
+            const bodyGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.2, 16);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 1.2;
+            body.castShadow = true;
+            group.add(body);
+            
+            // Body top sphere
+            const bodyTopGeo = new THREE.SphereGeometry(0.5, 16, 8);
+            const bodyTop = new THREE.Mesh(bodyTopGeo, bodyMat);
+            bodyTop.position.y = 1.8;
+            group.add(bodyTop);
+            
+            // Body bottom sphere
+            const bodyBotGeo = new THREE.SphereGeometry(0.5, 16, 8);
+            const bodyBot = new THREE.Mesh(bodyBotGeo, bodyMat);
+            bodyBot.position.y = 0.6;
+            group.add(bodyBot);
+            
+            // Head
+            const headGeo = new THREE.SphereGeometry(0.45, 16, 16);
+            const head = new THREE.Mesh(headGeo, bodyMat);
+            head.position.y = 2.3;
+            head.castShadow = true;
+            group.add(head);
+            
+            // Snout
+            const snoutGeo = new THREE.ConeGeometry(0.2, 0.4, 8);
+            const snout = new THREE.Mesh(snoutGeo, bodyMat);
+            snout.position.set(0, 2.2, 0.4);
+            snout.rotation.x = Math.PI / 2;
+            group.add(snout);
+            
+            // Eyes
+            const eyeGeo = new THREE.SphereGeometry(0.08, 8, 8);
+            const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x666666 });
+            const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+            leftEye.position.set(-0.15, 2.4, 0.35);
+            group.add(leftEye);
+            const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+            rightEye.position.set(0.15, 2.4, 0.35);
+            group.add(rightEye);
+            
+            // Pupils
+            const pupilGeo = new THREE.SphereGeometry(0.04, 8, 8);
+            const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+            const leftPupil = new THREE.Mesh(pupilGeo, pupilMat);
+            leftPupil.position.set(-0.15, 2.4, 0.42);
+            group.add(leftPupil);
+            const rightPupil = new THREE.Mesh(pupilGeo, pupilMat);
+            rightPupil.position.set(0.15, 2.4, 0.42);
+            group.add(rightPupil);
+            
+            // Ears based on type
+            const earMat = new THREE.MeshStandardMaterial({ color: type.color });
+            if (type.earType === 'pointed') {
+                const earGeo = new THREE.ConeGeometry(0.15, 0.4, 4);
+                const leftEar = new THREE.Mesh(earGeo, earMat);
+                leftEar.position.set(-0.25, 2.7, 0);
+                leftEar.rotation.z = -0.3;
+                group.add(leftEar);
+                const rightEar = new THREE.Mesh(earGeo, earMat);
+                rightEar.position.set(0.25, 2.7, 0);
+                rightEar.rotation.z = 0.3;
+                group.add(rightEar);
+            } else if (type.earType === 'long') {
+                const earGeo = new THREE.CylinderGeometry(0.06, 0.1, 0.6, 8);
+                const leftEar = new THREE.Mesh(earGeo, earMat);
+                leftEar.position.set(-0.2, 2.9, -0.1);
+                leftEar.rotation.z = -0.2;
+                group.add(leftEar);
+                const rightEar = new THREE.Mesh(earGeo, earMat);
+                rightEar.position.set(0.2, 2.9, -0.1);
+                rightEar.rotation.z = 0.2;
+                group.add(rightEar);
+            } else if (type.earType === 'round') {
+                const earGeo = new THREE.SphereGeometry(0.15, 8, 8);
+                const leftEar = new THREE.Mesh(earGeo, earMat);
+                leftEar.position.set(-0.3, 2.65, 0);
+                group.add(leftEar);
+                const rightEar = new THREE.Mesh(earGeo, earMat);
+                rightEar.position.set(0.3, 2.65, 0);
+                group.add(rightEar);
+            } else if (type.earType === 'horns') {
+                const hornGeo = new THREE.ConeGeometry(0.08, 0.5, 6);
+                const hornMat = new THREE.MeshStandardMaterial({ color: 0x444444 });
+                const leftHorn = new THREE.Mesh(hornGeo, hornMat);
+                leftHorn.position.set(-0.2, 2.8, -0.1);
+                leftHorn.rotation.z = -0.4;
+                group.add(leftHorn);
+                const rightHorn = new THREE.Mesh(hornGeo, hornMat);
+                rightHorn.position.set(0.2, 2.8, -0.1);
+                rightHorn.rotation.z = 0.4;
+                group.add(rightHorn);
+            } else if (type.earType === 'antlers') {
+                const antlerMat = new THREE.MeshStandardMaterial({ color: 0x8b7355 });
+                [-1, 1].forEach(side => {
+                    const antler = new THREE.Group();
+                    const main = new THREE.CylinderGeometry(0.03, 0.05, 0.5, 6);
+                    const mainMesh = new THREE.Mesh(main, antlerMat);
+                    mainMesh.rotation.z = side * 0.5;
+                    antler.add(mainMesh);
+                    const branch = new THREE.CylinderGeometry(0.02, 0.03, 0.25, 6);
+                    const branchMesh = new THREE.Mesh(branch, antlerMat);
+                    branchMesh.position.set(side * 0.1, 0.15, 0);
+                    branchMesh.rotation.z = side * 0.8;
+                    antler.add(branchMesh);
+                    antler.position.set(side * 0.2, 2.75, -0.05);
+                    group.add(antler);
+                });
+            } else {
+                // Floppy ears
+                const earGeo = new THREE.SphereGeometry(0.2, 8, 8);
+                earGeo.scale(1, 1.5, 0.5);
+                const leftEar = new THREE.Mesh(earGeo, earMat);
+                leftEar.position.set(-0.4, 2.3, 0);
+                group.add(leftEar);
+                const rightEar = new THREE.Mesh(earGeo, earMat);
+                rightEar.position.set(0.4, 2.3, 0);
+                group.add(rightEar);
+            }
+            
+            // Tail
+            const tailGeo = new THREE.CylinderGeometry(0.1, 0.15, 0.5, 8);
+            const tail = new THREE.Mesh(tailGeo, earMat);
+            tail.position.set(0, 1, -0.5);
+            tail.rotation.x = 0.5;
+            group.add(tail);
+            
+            // Tail tip
+            const tailTipGeo = new THREE.SphereGeometry(0.12, 8, 8);
+            const tailTip = new THREE.Mesh(tailTipGeo, earMat);
+            tailTip.position.set(0, 1.2, -0.65);
+            group.add(tailTip);
+            
+            // Exclamation mark (showing they're hyped)
+            const exclamGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.3, 8);
+            const exclamMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xfbbf24, emissiveIntensity: 0.5 });
+            const exclam = new THREE.Mesh(exclamGeo, exclamMat);
+            exclam.position.set(0, 3.2, 0);
+            group.add(exclam);
+            const dotGeo = new THREE.SphereGeometry(0.06, 8, 8);
+            const dot = new THREE.Mesh(dotGeo, exclamMat);
+            dot.position.set(0, 2.95, 0);
+            group.add(dot);
+            
+            // Spawn position
+            const spawnAngle = Math.random() * Math.PI * 2;
+            const spawnDist = 25 + Math.random() * 10;
+            group.position.set(
+                Math.cos(spawnAngle) * spawnDist,
+                0,
+                Math.sin(spawnAngle) * spawnDist
+            );
+            
+            group.userData = {
+                type: type,
+                speed: type.speed * (0.8 + Math.random() * 0.4),
+                targetX: (Math.random() - 0.5) * 50,
+                targetZ: (Math.random() - 0.5) * 50,
+                changeTimer: Math.random() * 100,
+                bobPhase: Math.random() * Math.PI * 2
+            };
+            
+            scene.add(group);
+            furries.push(group);
+        }
+        
+        function createProjectile() {
+            const group = new THREE.Group();
+            
+            // Water bottle
+            const bottleGeo = new THREE.CylinderGeometry(0.08, 0.1, 0.3, 8);
+            const bottleMat = new THREE.MeshStandardMaterial({ 
+                color: 0x60a5fa, 
+                transparent: true, 
+                opacity: 0.8,
+                emissive: 0x60a5fa,
+                emissiveIntensity: 0.3
+            });
+            const bottle = new THREE.Mesh(bottleGeo, bottleMat);
+            group.add(bottle);
+            
+            // Cap
+            const capGeo = new THREE.CylinderGeometry(0.05, 0.08, 0.08, 8);
+            const capMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            const cap = new THREE.Mesh(capGeo, capMat);
+            cap.position.y = 0.18;
+            group.add(cap);
+            
+            // Trail particles
+            const trailGeo = new THREE.SphereGeometry(0.03, 8, 8);
+            const trailMat = new THREE.MeshStandardMaterial({ 
+                color: 0x60a5fa, 
+                transparent: true, 
+                opacity: 0.5 
+            });
+            for (let i = 0; i < 3; i++) {
+                const trail = new THREE.Mesh(trailGeo, trailMat);
+                trail.position.set(
+                    (Math.random() - 0.5) * 0.1,
+                    -0.1 - i * 0.08,
+                    (Math.random() - 0.5) * 0.1
+                );
+                group.add(trail);
+            }
+            
+            return group;
+        }
+        
+        function shoot(e) {
+            if (!gameRunning || gamePaused || reloading) return;
+            if (e.button !== 0) return;
+            
+            if (ammo <= 0) {
+                showMessage("🔄 Reloading...");
+                reload();
+                return;
+            }
+            
+            ammo--;
+            updateHUD();
+            
+            const projectile = createProjectile();
+            projectile.position.copy(camera.position);
+            
+            // Get shooting direction
+            const direction = new THREE.Vector3();
+            camera.getWorldDirection(direction);
+            
+            projectile.userData = {
+                velocity: direction.multiplyScalar(1.5),
+                life: 100
+            };
+            
+            scene.add(projectile);
+            projectiles.push(projectile);
+            
+            // Auto reload when empty
+            if (ammo <= 0) {
+                setTimeout(() => {
+                    if (gameRunning && !gamePaused) reload();
+                }, 500);
+            }
+        }
+        
+        function reload() {
+            if (reloading || ammo === maxAmmo) return;
+            reloading = true;
+            showMessage("🔄 Reloading...");
+            
+            setTimeout(() => {
+                ammo = maxAmmo;
+                reloading = false;
+                updateHUD();
+                showMessage("✅ Ready!");
+                setTimeout(() => hideMessage(), 500);
+            }, 1000);
+        }
+        
+        function onMouseMove(e) {
+            if (!gameRunning || gamePaused) return;
+            if (document.pointerLockElement !== document.body) {
+                document.body.requestPointerLock();
+            }
+            
+            const sensitivity = 0.002;
+            player.yaw -= e.movementX * sensitivity;
+            player.pitch -= e.movementY * sensitivity;
+            player.pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, player.pitch));
+        }
+        
+        function updatePlayer() {
+            if (!gameRunning || gamePaused) return;
+            
+            const forward = new THREE.Vector3(
+                Math.sin(player.yaw),
+                0,
+                Math.cos(player.yaw)
+            );
+            const right = new THREE.Vector3(
+                Math.cos(player.yaw),
+                0,
+                -Math.sin(player.yaw)
+            );
+            
+            let moved = false;
+            if (keys['KeyW']) { player.x += forward.x * player.speed; player.z += forward.z * player.speed; moved = true; }
+            if (keys['KeyS']) { player.x -= forward.x * player.speed; player.z -= forward.z * player.speed; moved = true; }
+            if (keys['KeyA']) { player.x -= right.x * player.speed; player.z -= right.z * player.speed; moved = true; }
+            if (keys['KeyD']) { player.x += right.x * player.speed; player.z += right.z * player.speed; moved = true; }
+            
+            // Boundary
+            player.x = Math.max(-38, Math.min(38, player.x));
+            player.z = Math.max(-38, Math.min(38, player.z));
+            
+            // Head bob
+            if (moved) {
+                player.y = 2 + Math.sin(Date.now() * 0.01) * 0.05;
+            }
+            
+            camera.position.set(player.x, player.y, player.z);
+            camera.rotation.order = 'YXZ';
+            camera.rotation.y = player.yaw;
+            camera.rotation.x = player.pitch;
+        }
+        
+        function updateFurries() {
+            if (!gameRunning || gamePaused) return;
+            
+            furries.forEach(furry => {
+                const data = furry.userData;
+                
+                // Move toward target
+                const dx = data.targetX - furry.position.x;
+                const dz = data.targetZ - furry.position.z;
+                const dist = Math.sqrt(dx * dx + dz * dz);
+                
+                if (dist > 1) {
+                    furry.position.x += (dx / dist) * data.speed;
+                    furry.position.z += (dz / dist) * data.speed;
+                    furry.rotation.y = Math.atan2(dx, dz);
+                }
+                
+                // Change target periodically
+                data.changeTimer--;
+                if (data.changeTimer <= 0 || dist < 1) {
+                    data.targetX = (Math.random() - 0.5) * 60;
+                    data.targetZ = (Math.random() - 0.5) * 60;
+                    data.changeTimer = 100 + Math.random() * 200;
+                }
+                
+                // Bouncy animation
+                data.bobPhase += 0.1;
+                const bobOffset = Math.sin(data.bobPhase) * 0.1;
+                // Body parts bob together
+                if (furry.children[0]) furry.children[0].position.y = 1.2 + bobOffset;
+                if (furry.children[1]) furry.children[1].position.y = 1.8 + bobOffset;
+                if (furry.children[2]) furry.children[2].position.y = 0.6 + bobOffset;
+                if (furry.children[3]) furry.children[3].position.y = 2.3 + bobOffset;
+                
+                // Boundary
+                furry.position.x = Math.max(-35, Math.min(35, furry.position.x));
+                furry.position.z = Math.max(-35, Math.min(35, furry.position.z));
+            });
+            
+            // Chaos increases based on number of furries
+            if (furries.length > 3) {
+                chaos += 0.015 * (furries.length - 3);
+            }
+            
+            // Spawn more furries over time
+            if (Math.random() < 0.02 && furries.length < 15) {
+                createFurry();
+            }
+            
+            updateHUD();
+            
+            // Check lose condition
+            if (chaos >= 100) {
+                endGame(false);
+            }
+            
+            document.getElementById('activeFurries').textContent = furries.length;
+        }
+        
+        function updateProjectiles() {
+            if (!gameRunning || gamePaused) return;
+            
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const proj = projectiles[i];
+                const data = proj.userData;
+                
+                proj.position.add(data.velocity);
+                proj.rotation.x += 0.2;
+                data.life--;
+                
+                // Check collision with furries
+                for (let j = furries.length - 1; j >= 0; j--) {
+                    const furry = furries[j];
+                    const dist = proj.position.distanceTo(furry.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
+                    
+                    if (dist < 1.2) {
+                        // Hit!
+                        createHitEffect(furry.position);
+                        scene.remove(furry);
+                        furries.splice(j, 1);
+                        scene.remove(proj);
+                        projectiles.splice(i, 1);
+                        
+                        score++;
+                        chaos = Math.max(0, chaos - 5);
+                        
+                        showHitMarker();
+                        
+                        // Milestones
+                        if (score === 10) announce("🔥 Halfway there!");
+                        if (score === 20) announce("⚡ Almost done!");
+                        
+                        updateHUD();
+                        
+                        // Win condition
+                        if (score >= targetScore) {
+                            endGame(true);
+                        }
+                        break;
+                    }
+                }
+                
+                // Remove old projectiles
+                if (data.life <= 0 || proj.position.y < 0 || 
+                    Math.abs(proj.position.x) > 45 || Math.abs(proj.position.z) > 45) {
+                    scene.remove(proj);
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+        
+        function createHitEffect(position) {
+            // Splash particles
+            for (let i = 0; i < 8; i++) {
+                const geo = new THREE.SphereGeometry(0.1, 8, 8);
+                const mat = new THREE.MeshStandardMaterial({ 
+                    color: 0x60a5fa, 
+                    transparent: true, 
+                    opacity: 0.8 
+                });
+                const particle = new THREE.Mesh(geo, mat);
+                particle.position.copy(position);
+                particle.position.y += 1.5;
+                
+                particle.userData = {
+                    velocity: new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.3,
+                        Math.random() * 0.3,
+                        (Math.random() - 0.5) * 0.3
+                    ),
+                    life: 30
+                };
+                
+                scene.add(particle);
+                
+                // Animate and remove
+                const animateParticle = () => {
+                    particle.position.add(particle.userData.velocity);
+                    particle.userData.velocity.y -= 0.02;
+                    particle.userData.life--;
+                    particle.material.opacity = particle.userData.life / 30;
+                    
+                    if (particle.userData.life > 0) {
+                        requestAnimationFrame(animateParticle);
+                    } else {
+                        scene.remove(particle);
+                    }
+                };
+                animateParticle();
+            }
+        }
+        
+        function showHitMarker() {
+            const marker = document.createElement('div');
+            marker.className = 'hit-marker';
+            marker.textContent = '💧';
+            document.body.appendChild(marker);
+            setTimeout(() => marker.remove(), 300);
+        }
+        
+        function announce(text) {
+            const ann = document.createElement('div');
+            ann.className = 'announcement';
+            ann.textContent = text;
+            document.body.appendChild(ann);
+            setTimeout(() => ann.remove(), 1500);
+        }
+        
+        function showMessage(text) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.style.opacity = '1';
+        }
+        
+        function hideMessage() {
+            document.getElementById('message').style.opacity = '0';
+        }
+        
+        function updateHUD() {
+            document.getElementById('scoreValue').textContent = score;
+            document.getElementById('chaosValue').textContent = Math.floor(chaos);
+            document.getElementById('ammoValue').textContent = ammo;
+            document.getElementById('chaosBarFill').style.width = chaos + '%';
+            
+            // Color chaos bar based on level
+            const fill = document.getElementById('chaosBarFill');
+            if (chaos > 75) {
+                fill.style.background = 'linear-gradient(90deg, #f87171, #dc2626, #7f1d1d)';
+            } else if (chaos > 50) {
+                fill.style.background = 'linear-gradient(90deg, #fbbf24, #f87171, #dc2626)';
+            } else {
+                fill.style.background = 'linear-gradient(90deg, #4ade80, #fbbf24, #f87171)';
+            }
+        }
+        
+        function togglePause() {
+            gamePaused = !gamePaused;
+            if (gamePaused) {
+                showMessage("⏸️ PAUSED - Press ESC to continue");
+            } else {
+                hideMessage();
+            }
+        }
+        
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            
+            // Reset game state
+            score = 0;
+            chaos = 0;
+            ammo = maxAmmo;
+            player = { x: 0, y: 2, z: 0, yaw: 0, pitch: 0, speed: 0.15 };
+            
+            // Clear existing entities
+            furries.forEach(f => scene.remove(f));
+            furries = [];
+            projectiles.forEach(p => scene.remove(p));
+            projectiles = [];
+            
+            // Spawn initial furries
+            for (let i = 0; i < 5; i++) {
+                createFurry();
+            }
+            
+            gameRunning = true;
+            gamePaused = false;
+            updateHUD();
+            
+            document.body.requestPointerLock();
+        }
+        
+        function endGame(won) {
+            gameRunning = false;
+            document.exitPointerLock();
+            
+            if (won) {
+                document.getElementById('finalScore').textContent = score;
+                document.getElementById('winScreen').classList.remove('hidden');
+            } else {
+                document.getElementById('loseScore').textContent = score;
+                document.getElementById('loseScreen').classList.remove('hidden');
+            }
+        }
+        
+        function restartGame() {
+            document.getElementById('winScreen').classList.add('hidden');
+            document.getElementById('loseScreen').classList.add('hidden');
+            startGame();
+        }
+        
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (gameRunning && !gamePaused) {
+                updatePlayer();
+                updateFurries();
+                updateProjectiles();
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Start
+        init();
+    </script>
+</body>
+</html>

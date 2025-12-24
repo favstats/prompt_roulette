@@ -43,6 +43,17 @@
       "url": "https://favstats.github.io/prompt_roulette/games/ohio-sigma-grindset.html",
       "description": "You're trapped in Ohio (the meme version) and must escape by navigating through NPCs using your sigma grindset techniques. Each NPC type requires a specific counter-move.",
       "submitted": "2025-12-14"
+    },
+    {
+      "title": "FURRY CON CRISIS MANAGER",
+      "author": "favstats",
+      "theme": "You're a furry managing a furry con with lots of other furries (different animals)",
+      "genre": "First-Person Shooter",
+      "twist": "You are not actually a furry",
+      "difficulty": "normal",
+      "url": "https://favstats.github.io/prompt_roulette/games/furry-con-crisis-manager.html",
+      "description": "You're Dave — a totally normal human hired to manage FurryCon 2024. Problem: the attendees are getting dangerously hyped and chaos is rising! Armed with your trusty Hydration Cannon, blast water bottles at overheated furries (wolves, foxes, dragons, rabbits, and more) to cool them down before the convention descends into total mayhem.",
+      "submitted": "2025-12-24"
     }
   ]
 }
