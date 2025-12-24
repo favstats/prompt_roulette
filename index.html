@@ -966,10 +966,10 @@
           }
         }
 
-        // Try GitHub raw URL
+        // Try GitHub raw URL (with cache buster)
         try {
-          const url = getGitHubRawURL(filename);
-          const response = await fetch(url);
+          const url = getGitHubRawURL(filename) + '?_=' + Date.now();
+          const response = await fetch(url, { cache: 'no-store' });
           if (response.ok) {
             const data = await response.json();
             // Cache it
@@ -981,9 +981,9 @@
           console.warn(`Failed to fetch ${filename} from GitHub`, e);
         }
 
-        // Try local file
+        // Try local file (with cache buster)
         try {
-          const response = await fetch(filename);
+          const response = await fetch(filename + '?_=' + Date.now(), { cache: 'no-store' });
           if (response.ok) {
             const data = await response.json();
             localStorage.setItem(cacheKey(filename), JSON.stringify(data));
